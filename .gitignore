@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment files (JANGAN masuk ke GitHub!)
+.env
+.env.*
+.env.local
+.env.tehmaestro
+!.env.example
+
+# InsForge credentials
+.insforge/
+
+# AI agent skills & config
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Testing
+test-results/
+coverage/
+e2e/
+
+# Temporary & seed scripts
+seed.js
+seed.ts
+seed.sql
+execute_seed.ts
+check_cols.js
+fix_locators*.js
+fix_login.js
+void_transaction.sql
+products.json
+testsprite_tests/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
