@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings, Activity, CalendarDays, Smartphone, Download } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, Settings, Activity, CalendarDays, Smartphone, Download, BarChart, ShieldAlert, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -13,7 +13,10 @@ const menuItems = [
   { name: "Stock Opname", href: "/stock-opname", icon: Package },
   { name: "Staff Schedules", href: "/staff-schedules", icon: CalendarDays },
   { name: "Transactions", href: "/transactions", icon: ShoppingCart },
+  { name: "Vouchers", href: "/vouchers", icon: Tag },
+  { name: "Reports", href: "/reports", icon: BarChart },
   { name: "Staff", href: "/staff", icon: Users },
+  { name: "Security", href: "/security", icon: ShieldAlert },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

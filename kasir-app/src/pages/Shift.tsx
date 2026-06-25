@@ -3,7 +3,7 @@ import { Camera, Play, Square, Clock } from 'lucide-react';
 import { insforge } from '../lib/insforge';
 
 export default function Shift() {
-  const [cycle, setCycle] = useState<any>(null);
+  const [attendance, setAttendance] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [openingCash, setOpeningCash] = useState('');
   
@@ -15,25 +15,25 @@ export default function Shift() {
   const primaryColor = import.meta.env.VITE_PRIMARY_COLOR || '#000000';
 
   useEffect(() => {
-    fetchActiveCycle();
+    fetchAttendanceStatus();
   }, []);
 
-  const fetchActiveCycle = async () => {
+  const fetchAttendanceStatus = async () => {
     setLoading(true);
     const { data: userData } = await insforge.auth.getCurrentUser();
     
     if (userData.user) {
-      // Find active cycle for this user
+      // Find active attendance log for this user
       const { data } = await insforge.database
-        .from('business_cycles')
+        .from('attendance_logs')
         .select('*')
-        .eq('staff_id', userData.user.id)
-        .eq('status', 'OPEN')
+        .eq('user_id', userData.user.id)
+        .is('clock_out_at', null)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
         
-      setCycle(data || null);
+      setAttendance(data || null);
     }
     setLoading(false);
   };
@@ -79,17 +79,36 @@ export default function Shift() {
       const { data: userData } = await insforge.auth.getCurrentUser();
       const { data: userRecord } = await insforge.database.from("users").select("outlet_id").eq("id", userData.user?.id).single();
 
-      // In a real app we'd upload the photo to storage. Here we just assume success.
-      // For demo, we just pass a dummy URL since it's an MVP
-      const photoPath = "photos/dummy.jpg";
+      // Convert Base64 to Blob
+      const fetchResponse = await fetch(photoUrl);
+      const blob = await fetchResponse.blob();
+      
+      const fileName = `attendance/${userData.user?.id}_${Date.now()}.jpg`;
+      
+      // Upload to InsForge storage bucket named 'foto'
+      const { error: uploadError } = await insforge.storage
+        .from('foto')
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: publicUrlData } = insforge.storage
+        .from('foto')
+        .getPublicUrl(fileName);
+
+      const actualPhotoUrl = publicUrlData.publicUrl;
 
       const response = await insforge.functions.invoke('manage-business-cycle', {
         body: {
-          action: 'OPEN',
+          action: 'clock_in',
           outletId: userRecord?.outlet_id,
-          staffId: userData.user?.id,
+          userId: userData.user?.id,
           openingCash: parseInt(openingCash),
-          photoUrl: photoPath
+          photoUrl: actualPhotoUrl
         }
       });
 
@@ -98,28 +117,31 @@ export default function Shift() {
       alert("Clock-in successful!");
       setPhotoUrl(null);
       setOpeningCash('');
-      fetchActiveCycle();
+      fetchAttendanceStatus();
     } catch (err: any) {
       alert(err.message || "Failed to clock in");
     }
   };
 
   const handleClockOut = async () => {
-    if (!cycle) return;
+    if (!attendance) return;
     if (!confirm("Are you sure you want to end your shift?")) return;
 
     try {
+      const { data: userData } = await insforge.auth.getCurrentUser();
+      
       const response = await insforge.functions.invoke('manage-business-cycle', {
         body: {
-          action: 'CLOSE',
-          cycleId: cycle.id
+          action: 'clock_out',
+          userId: userData.user?.id,
+          outletId: attendance.outlet_id
         }
       });
 
       if (response.error) throw response.error;
       
       alert("Clock-out successful! Shift closed.");
-      fetchActiveCycle();
+      fetchAttendanceStatus();
     } catch (err: any) {
       alert(err.message || "Failed to clock out");
     }
@@ -131,14 +153,14 @@ export default function Shift() {
 
       {loading ? (
         <div className="text-center py-10">Loading...</div>
-      ) : cycle ? (
+      ) : attendance ? (
         <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 text-center">
           <div className="mb-4 inline-flex items-center justify-center rounded-full bg-green-100 p-4 text-green-600">
             <Clock className="h-10 w-10" />
           </div>
           <h2 className="text-xl font-bold">Shift Active</h2>
           <p className="text-gray-500 mt-2 text-sm">
-            Started: {new Date(cycle.created_at).toLocaleString('id-ID')}
+            Started: {new Date(attendance.clock_in_at || attendance.created_at).toLocaleString('id-ID')}
           </p>
           <div className="mt-8">
             <button 

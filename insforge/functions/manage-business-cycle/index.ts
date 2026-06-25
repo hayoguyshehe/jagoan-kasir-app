@@ -2,11 +2,13 @@
 import { createClient } from "npm:@insforge/sdk";
 
 interface CycleRequest {
-  action: 'open' | 'close';
+  action: 'clock_in' | 'clock_out' | 'close_store';
   outletId: string;
   userId: string;
+  openingCash?: number;
+  photoUrl?: string;
   notes?: string;
-  cycleId?: string; // required if action === 'close'
+  cycleId?: string; // required if action === 'close_store'
 }
 
 const corsHeaders = {
@@ -34,33 +36,109 @@ export default async function (req: Request) {
       });
     }
 
-    const { action, outletId, userId, notes, cycleId }: CycleRequest = await req.json();
+    const { action, outletId, userId, openingCash, photoUrl, notes, cycleId }: CycleRequest = await req.json();
 
     if (!action || !outletId || !userId) {
       throw new Error("action, outletId, and userId are required");
     }
 
-    if (action === 'open') {
-      // Create new cycle
-      const { data, error } = await insforge
+    if (action === 'clock_in') {
+      // 1. Check if there's an ACTIVE cycle for this outlet
+      let activeCycleId;
+      const { data: existingCycle, error: checkError } = await insforge
         .from('business_cycles')
+        .select('id')
+        .eq('outlet_id', outletId)
+        .eq('status', 'ACTIVE')
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (!existingCycle) {
+        // Create new cycle (Open Store)
+        const { data: newCycle, error: createError } = await insforge
+          .from('business_cycles')
+          .insert({
+            outlet_id: outletId,
+            opened_by: userId,
+            status: 'ACTIVE',
+            notes: `Opened with cash: ${openingCash || 0}`
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        activeCycleId = newCycle.id;
+      } else {
+        activeCycleId = existingCycle.id;
+      }
+
+      // 2. Clock in the user
+      // Check if already clocked in
+      const { data: existingLog } = await insforge
+        .from('attendance_logs')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('cycle_id', activeCycleId)
+        .is('clock_out_at', null)
+        .maybeSingle();
+
+      if (existingLog) {
+        throw new Error("User is already clocked in for this cycle.");
+      }
+
+      const { data: attData, error: attError } = await insforge
+        .from('attendance_logs')
         .insert({
+          cycle_id: activeCycleId,
+          user_id: userId,
           outlet_id: outletId,
-          opened_by: userId,
-          status: 'ACTIVE',
-          notes: notes
+          status: 'HADIR',
+          clock_in_at: new Date().toISOString(),
+          photo_url: photoUrl || null,
         })
         .select()
         .single();
 
-      if (error) throw error;
-      return new Response(JSON.stringify({ success: true, cycle: data }), {
+      if (attError) throw attError;
+
+      return new Response(JSON.stringify({ success: true, cycle_id: activeCycleId, attendance: attData }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
 
-    } else if (action === 'close') {
-      if (!cycleId) throw new Error("cycleId is required to close");
+    } else if (action === 'clock_out') {
+      // Find active attendance log
+      const { data: activeLog, error: logError } = await insforge
+        .from('attendance_logs')
+        .select('id, cycle_id')
+        .eq('user_id', userId)
+        .eq('outlet_id', outletId)
+        .is('clock_out_at', null)
+        .maybeSingle();
+
+      if (logError) throw logError;
+      if (!activeLog) throw new Error("No active clock-in found for this user.");
+
+      // Update clock out
+      const { data: outData, error: outError } = await insforge
+        .from('attendance_logs')
+        .update({
+          clock_out_at: new Date().toISOString()
+        })
+        .eq('id', activeLog.id)
+        .select()
+        .single();
+
+      if (outError) throw outError;
+
+      return new Response(JSON.stringify({ success: true, attendance: outData }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+
+    } else if (action === 'close_store') {
+      if (!cycleId) throw new Error("cycleId is required to close store");
 
       // 1. Close cycle
       const { data: cycle, error: cycleError } = await insforge
@@ -90,7 +168,6 @@ export default async function (req: Request) {
       if (attError) throw attError;
 
       // 3. Mark ALPA for staff who didn't clock in at all
-      // For simplicity, we fetch all active staff for this outlet
       const { data: activeStaff } = await insforge
         .from('users')
         .select('id')
@@ -99,7 +176,6 @@ export default async function (req: Request) {
         .eq('is_active', true);
 
       if (activeStaff && activeStaff.length > 0) {
-        // Fetch staff who did clock in
         const { data: clockedInStaff } = await insforge
           .from('attendance_logs')
           .select('user_id')

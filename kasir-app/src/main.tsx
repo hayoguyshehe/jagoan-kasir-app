@@ -4,6 +4,10 @@ import './index.css'
 import App from './App.tsx'
 
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { registerSW } from 'virtual:pwa-register';
+
+// Register PWA service worker
+registerSW({ immediate: true });
 
 // Lock orientation to portrait immediately
 ScreenOrientation.lock({ orientation: 'landscape' }).catch(err => {

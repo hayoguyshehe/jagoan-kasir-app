@@ -4,8 +4,8 @@ import { insforge } from '../lib/insforge';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,9 +19,13 @@ export default function Login() {
     setError('');
 
     try {
+      const brandSlug = "jagoankasir.internal";
+      const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const loginEmail = `${normalizedName}@${brandSlug}`;
+
       const { data, error: authError } = await insforge.auth.signInWithPassword({
-        email,
-        password,
+        email: loginEmail,
+        password: pin,
       });
 
       if (authError) throw authError;
@@ -30,7 +34,7 @@ export default function Login() {
       // Verify user is active staff
       const { data: userData, error: userError } = await insforge.database
         .from('users')
-        .select('role, is_active')
+        .select('role, is_active, outlet_id')
         .eq('id', data.user?.id)
         .single();
 
@@ -39,6 +43,23 @@ export default function Login() {
       if (!userData.is_active) {
         await insforge.auth.signOut();
         throw new Error('Your account is inactive. Please contact your manager.');
+      }
+
+      // Check Device ID
+      let deviceId = localStorage.getItem('outlet_device_id');
+      if (!deviceId) {
+        // First time login on this device. Generate a device ID.
+        deviceId = 'DEV-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        localStorage.setItem('outlet_device_id', deviceId);
+        
+        // Log to security_logs (unrecognized device)
+        await insforge.database.from('security_logs').insert({
+          outlet_id: userData.outlet_id || null,
+          staff_id: data.user.id,
+          attempted_name: name,
+          event_type: 'UNRECOGNIZED_DEVICE_LOGIN',
+          device_info: navigator.userAgent + ' | Generated ID: ' + deviceId
+        });
       }
 
       if (userData?.role === 'OWNER') {
@@ -79,26 +100,27 @@ export default function Login() {
             <form onSubmit={handleLogin} className="w-full space-y-5">
               <div className="space-y-1">
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="Email address"
+                  id="name"
+                  type="text"
+                  placeholder="Nama Panggilan"
                   required
                   className="w-full h-14 bg-gray-100/80 border-0 rounded-full px-6 text-base focus-visible:outline-none focus:ring-2 focus:ring-offset-0 focus:bg-white transition-all placeholder:text-gray-400 font-medium"
                   style={{ '--tw-ring-color': primaryColor } as any}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div className="space-y-1 relative">
                 <input
-                  id="password"
+                  id="pin"
                   type="password"
-                  placeholder="Password"
+                  placeholder="PIN 6-Digit"
                   required
-                  className="w-full h-14 bg-gray-100/80 border-0 rounded-full px-6 pr-12 text-base focus-visible:outline-none focus:ring-2 focus:ring-offset-0 focus:bg-white transition-all placeholder:text-gray-400 font-medium"
+                  maxLength={6}
+                  className="w-full h-14 bg-gray-100/80 border-0 rounded-full px-6 pr-12 text-base focus-visible:outline-none focus:ring-2 focus:ring-offset-0 focus:bg-white transition-all placeholder:text-gray-400 font-medium text-center tracking-widest text-xl"
                   style={{ '--tw-ring-color': primaryColor } as any}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                 />
               </div>
 

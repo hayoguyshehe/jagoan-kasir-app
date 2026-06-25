@@ -18,3 +18,26 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Print Styles — only show receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print\:p-4,
+  .print\:p-4 * {
+    visibility: visible;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+}

@@ -3,14 +3,18 @@ import { createClient } from "npm:@insforge/sdk";
 
 // Define the shape of our incoming request
 interface TransactionRequest {
+  id?: string; // Optional for backward compatibility, but required for Phase 3 idempotency
   cycleId: string;
   staffId: string;
   outletId: string;
   paymentMethod: 'CASH' | 'QRIS_STATIC';
+  voucherCode?: string;
+  globalDiscount?: number;
   items: Array<{
     productId: string;
     quantity: number;
     serveType: 'HOT' | 'COLD' | null;
+    discountAmount?: number;
   }>;
 }
 
@@ -44,10 +48,27 @@ export default async function (req: Request) {
       });
     }
 
-    const { cycleId, staffId, outletId, paymentMethod, items }: TransactionRequest = await req.json();
+    const { id, cycleId, staffId, outletId, paymentMethod, items, voucherCode, globalDiscount }: TransactionRequest = await req.json();
 
     if (!items || items.length === 0) {
       throw new Error("Transaction items cannot be empty");
+    }
+
+    // IDEMPOTENCY CHECK
+    if (id) {
+      const { data: existingTxn } = await insforge
+        .from('transactions')
+        .select('id')
+        .eq('id', id)
+        .single();
+        
+      if (existingTxn) {
+        // Transaction already processed successfully previously. Return success without deducting stock.
+        return new Response(JSON.stringify({ success: true, transaction: existingTxn, message: 'Already processed (idempotent)' }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
     }
 
     // Begin a 'pseudo' transaction
@@ -63,7 +84,7 @@ export default async function (req: Request) {
     // Create a lookup map
     const productMap = new Map(products.map(p => [p.id, p]));
 
-    let totalAmount = 0;
+    let itemTotal = 0;
     const transactionItemsToInsert = [];
     const stockUpdates: Array<{ id: string, stock: number }> = [];
 
@@ -72,8 +93,8 @@ export default async function (req: Request) {
       const product = productMap.get(item.productId);
       if (!product) throw new Error(`Product not found: ${item.productId}`);
 
-      const subtotal = product.price * item.quantity;
-      totalAmount += subtotal;
+      const subtotal = (product.price * item.quantity) - (item.discountAmount || 0);
+      itemTotal += subtotal;
 
       transactionItemsToInsert.push({
         product_id: item.productId,
@@ -81,7 +102,8 @@ export default async function (req: Request) {
         quantity: item.quantity,
         price: product.price,
         serve_type: item.serveType,
-        subtotal: subtotal
+        discount_amount: item.discountAmount || 0,
+        subtotal: Math.max(0, subtotal)
       });
 
       // Update main product stock
@@ -132,23 +154,66 @@ export default async function (req: Request) {
       }
     }
 
-    // 3. Insert Transaction
+    // 3. Process Voucher / Discounts
+    let finalDiscountAmount = globalDiscount || 0;
+    let appliedVoucherCode = voucherCode || null;
+
+    if (voucherCode) {
+      const { data: voucher, error: voucherError } = await insforge
+        .from('vouchers')
+        .select('*')
+        .eq('code', voucherCode)
+        .eq('outlet_id', outletId)
+        .eq('is_active', true)
+        .single();
+        
+      if (voucherError || !voucher) {
+        throw new Error("Invalid or expired voucher code");
+      }
+      if (voucher.valid_until && new Date(voucher.valid_until) < new Date()) {
+        throw new Error("Voucher code has expired");
+      }
+      if (voucher.min_purchase > itemTotal) {
+        throw new Error(`Minimum purchase of Rp ${voucher.min_purchase} required for this voucher`);
+      }
+
+      if (voucher.discount_type === 'PERCENTAGE') {
+        let calcDiscount = Math.floor(itemTotal * (voucher.discount_value / 100));
+        if (voucher.max_discount && calcDiscount > voucher.max_discount) {
+          calcDiscount = voucher.max_discount;
+        }
+        finalDiscountAmount = calcDiscount;
+      } else {
+        finalDiscountAmount = voucher.discount_value;
+      }
+    }
+
+    const totalAmount = Math.max(0, itemTotal - finalDiscountAmount);
+
+    // 4. Insert Transaction
+    const transactionPayload: any = {
+      cycle_id: cycleId,
+      staff_id: staffId,
+      outlet_id: outletId,
+      total_amount: totalAmount,
+      discount_amount: finalDiscountAmount,
+      voucher_code: appliedVoucherCode,
+      payment_method: paymentMethod,
+      status: 'COMPLETED'
+    };
+    if (id) {
+      transactionPayload.id = id;
+    }
+
     const { data: transaction, error: txnError } = await insforge
       .from('transactions')
-      .insert({
-        cycle_id: cycleId,
-        staff_id: staffId,
-        outlet_id: outletId,
-        total_amount: totalAmount,
-        payment_method: paymentMethod,
-        status: 'COMPLETED'
-      })
+      .insert(transactionPayload)
       .select()
       .single();
 
     if (txnError) throw txnError;
 
-    // 4. Insert Transaction Items
+    // 5. Insert Transaction Items
     const finalItems = transactionItemsToInsert.map(i => ({
       ...i,
       transaction_id: transaction.id
@@ -160,7 +225,7 @@ export default async function (req: Request) {
 
     if (itemsError) throw itemsError;
 
-    // 5. Update Stocks (using upsert since we have primary keys)
+    // 6. Update Stocks (using upsert since we have primary keys)
     const { error: updateError } = await insforge
       .from('products')
       .upsert(stockUpdates);

@@ -14,6 +14,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { Image as ImageIcon } from "lucide-react";
 
 type Product = any;
 
@@ -30,6 +31,9 @@ export default function ProductsPage() {
   const [serveType, setServeType] = useState("BOTH");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
+  const [lowStockThreshold, setLowStockThreshold] = useState("5");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedOutletId) {
@@ -64,6 +68,9 @@ export default function ProductsPage() {
     setServeType("BOTH");
     setPrice("");
     setStock("");
+    setLowStockThreshold("5");
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const handleEdit = (p: Product) => {
@@ -73,6 +80,9 @@ export default function ProductsPage() {
     setServeType(p.serve_type || "BOTH");
     setPrice(p.price?.toString() || "");
     setStock(p.stock?.toString() || "0");
+    setLowStockThreshold(p.low_stock_threshold?.toString() || "5");
+    setImagePreview(p.image_url || null);
+    setImageFile(null);
     setIsDialogOpen(true);
   };
 
@@ -89,6 +99,27 @@ export default function ProductsPage() {
       return;
     }
 
+    let finalImageUrl = editingId ? products.find(p => p.id === editingId)?.image_url : null;
+
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `products/${selectedOutletId}/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await insforge.storage
+        .from('foto')
+        .upload(filePath, imageFile);
+
+      if (uploadError) {
+        console.error("UPLOAD ERROR:", uploadError);
+        alert("Gagal upload foto: " + uploadError.message);
+        return;
+      }
+
+      const { data: publicUrlData } = insforge.storage.from('foto').getPublicUrl(filePath);
+      finalImageUrl = publicUrlData.publicUrl;
+    }
+
     const payload = {
       outlet_id: selectedOutletId,
       name,
@@ -96,7 +127,9 @@ export default function ProductsPage() {
       serve_type: type === "MENU" ? serveType : "BOTH",
       price: price ? parseInt(price) : 0,
       stock: parseInt(stock) || 0,
+      low_stock_threshold: parseInt(lowStockThreshold) || 5,
       is_active: true,
+      ...(finalImageUrl && { image_url: finalImageUrl }),
     };
 
     if (editingId) {
@@ -190,8 +223,34 @@ export default function ProductsPage() {
                       <Input type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Stok</Label>
+                      <Label>Stok Awal</Label>
                       <Input type="number" value={stock} onChange={(e) => setStock(e.target.value)} required />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Batas Peringatan Stok Menipis</Label>
+                      <Input type="number" min="0" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} required />
+                      <p className="text-xs text-gray-500">Notifikasi muncul jika stok ≤ batas ini</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Foto Produk</Label>
+                    <div className="flex items-center gap-4">
+                      {imagePreview && (
+                        <img src={imagePreview} alt="Preview" className="h-16 w-16 object-cover rounded-md border" />
+                      )}
+                      <Input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setImageFile(file);
+                            setImagePreview(URL.createObjectURL(file));
+                          }
+                        }} 
+                      />
                     </div>
                   </div>
                   <div className="flex justify-end pt-4">
@@ -228,7 +287,16 @@ export default function ProductsPage() {
                 ) : (
                   products.map((product) => (
                     <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell className="font-medium flex items-center gap-3">
+                        {product.image_url ? (
+                          <img src={product.image_url} alt={product.name} className="h-10 w-10 object-cover rounded-md bg-gray-100" />
+                        ) : (
+                          <div className="h-10 w-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-400">
+                            <ImageIcon className="h-5 w-5" />
+                          </div>
+                        )}
+                        {product.name}
+                      </TableCell>
                       <TableCell>
                         <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                           {product.product_type}

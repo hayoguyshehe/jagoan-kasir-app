@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { XCircle, CheckCircle } from "lucide-react";
+import { useEffect, useState, Fragment } from "react";
+import { XCircle, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { insforge } from "@/lib/insforge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,7 @@ type Transaction = any;
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedTxn, setExpandedTxn] = useState<string | null>(null);
 
   // Void state
   const [isVoidDialogOpen, setIsVoidDialogOpen] = useState(false);
@@ -41,7 +42,7 @@ export default function TransactionsPage() {
     setLoading(true);
     const { data, error } = await insforge.database
       .from("transactions")
-      .select("*, staff:users!transactions_staff_id_fkey(email), cycle:business_cycles(status)")
+      .select("*, staff:users!transactions_staff_id_fkey(email), cycle:business_cycles(status), transaction_items(*)")
       .order("created_at", { ascending: false })
       .limit(100);
       
@@ -91,6 +92,7 @@ export default function TransactionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Transaction ID</TableHead>
               <TableHead>Staff</TableHead>
@@ -102,36 +104,79 @@ export default function TransactionsPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} className="text-center h-24">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center h-24">Loading...</TableCell></TableRow>
             ) : transactions.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center h-24">No transactions found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center h-24">No transactions found.</TableCell></TableRow>
             ) : (
               transactions.map((txn) => (
-                <TableRow key={txn.id}>
-                  <TableCell>{new Date(txn.created_at).toLocaleString("id-ID")}</TableCell>
-                  <TableCell className="font-medium text-xs">{txn.id}</TableCell>
-                  <TableCell>{txn.staff?.email || "Unknown"}</TableCell>
-                  <TableCell>Rp {txn.total_amount?.toLocaleString("id-ID") || 0}</TableCell>
-                  <TableCell>{txn.payment_method}</TableCell>
-                  <TableCell>
-                    {txn.status === "COMPLETED" ? (
-                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800">
-                        Completed
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800">
-                        Voided
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {txn.status === "COMPLETED" && (
-                      <Button variant="outline" size="sm" onClick={() => handleOpenVoidDialog(txn.id)} className="text-red-500 hover:text-red-600">
-                        <XCircle className="mr-2 h-4 w-4" /> Void
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
+                <Fragment key={txn.id}>
+                  <TableRow className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900" onClick={() => setExpandedTxn(expandedTxn === txn.id ? null : txn.id)}>
+                    <TableCell>
+                      {expandedTxn === txn.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </TableCell>
+                    <TableCell>{new Date(txn.created_at).toLocaleString("id-ID")}</TableCell>
+                    <TableCell className="font-medium text-xs">{txn.id}</TableCell>
+                    <TableCell>{txn.staff?.email || "Unknown"}</TableCell>
+                    <TableCell>Rp {txn.total_amount?.toLocaleString("id-ID") || 0}</TableCell>
+                    <TableCell>{txn.payment_method}</TableCell>
+                    <TableCell>
+                      {txn.status === "COMPLETED" ? (
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800">
+                          Completed
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800">
+                          Voided
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {txn.status === "COMPLETED" && (
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleOpenVoidDialog(txn.id); }} className="text-red-500 hover:text-red-600">
+                          <XCircle className="mr-2 h-4 w-4" /> Void
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                  {expandedTxn === txn.id && (
+                    <TableRow className="bg-gray-50/50 dark:bg-gray-900/50">
+                      <TableCell colSpan={8} className="p-0">
+                        <div className="p-4 pl-14">
+                          <h4 className="text-sm font-semibold mb-2">Order Items:</h4>
+                          <div className="rounded-md border bg-white dark:bg-gray-950">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Product Name</TableHead>
+                                  <TableHead>Serve Type</TableHead>
+                                  <TableHead>Qty</TableHead>
+                                  <TableHead>Price</TableHead>
+                                  <TableHead className="text-right">Subtotal</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {txn.transaction_items?.map((item: any) => (
+                                  <TableRow key={item.id}>
+                                    <TableCell className="font-medium">{item.product_name}</TableCell>
+                                    <TableCell>{item.serve_type || '-'}</TableCell>
+                                    <TableCell>{item.quantity}</TableCell>
+                                    <TableCell>Rp {item.price?.toLocaleString("id-ID")}</TableCell>
+                                    <TableCell className="text-right font-semibold">Rp {item.subtotal?.toLocaleString("id-ID")}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                          {txn.status === 'VOIDED' && txn.void_reason && (
+                            <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-md text-sm text-red-800">
+                              <span className="font-bold">Void Reason:</span> {txn.void_reason}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
               ))
             )}
           </TableBody>

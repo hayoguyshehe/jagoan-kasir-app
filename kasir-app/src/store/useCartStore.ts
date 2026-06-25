@@ -6,13 +6,19 @@ export interface CartItem {
   notes?: string;
   serveType?: 'HOT' | 'COLD';
   addons?: any[];
+  discountAmount?: number;
 }
 
 interface CartState {
   items: CartItem[];
+  voucherCode: string | null;
+  globalDiscount: number;
   addItem: (item: CartItem) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  setItemDiscount: (productId: string, discount: number) => void;
+  setVoucherCode: (code: string | null) => void;
+  setGlobalDiscount: (discount: number) => void;
   clearCart: () => void;
   totalItems: () => number;
   totalPrice: () => number;
@@ -20,6 +26,8 @@ interface CartState {
 
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
+  voucherCode: null,
+  globalDiscount: 0,
   addItem: (newItem) => set((state) => {
     const existingIndex = state.items.findIndex(
       (item) => item.product.id === newItem.product.id && item.serveType === newItem.serveType
@@ -41,11 +49,19 @@ export const useCartStore = create<CartState>((set, get) => ({
       item.product.id === productId ? { ...item, quantity } : item
     )
   })),
-  clearCart: () => set({ items: [] }),
+  setItemDiscount: (productId, discount) => set((state) => ({
+    items: state.items.map((item) => 
+      item.product.id === productId ? { ...item, discountAmount: discount } : item
+    )
+  })),
+  setVoucherCode: (code) => set({ voucherCode: code }),
+  setGlobalDiscount: (discount) => set({ globalDiscount: discount }),
+  clearCart: () => set({ items: [], voucherCode: null, globalDiscount: 0 }),
   totalItems: () => {
     return get().items.reduce((total, item) => total + item.quantity, 0);
   },
   totalPrice: () => {
-    return get().items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    const itemTotal = get().items.reduce((total, item) => total + (item.product.price * item.quantity) - (item.discountAmount || 0), 0);
+    return Math.max(0, itemTotal - get().globalDiscount);
   }
 }));

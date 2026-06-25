@@ -7,6 +7,8 @@ import POS from './pages/POS';
 import History from './pages/History';
 import Shift from './pages/Shift';
 import AppLayout from './components/layout/AppLayout';
+import SyncManager from './components/SyncManager';
+import LockScreen from './components/LockScreen';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null);
@@ -25,12 +27,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <LockScreen>
+      {children}
+    </LockScreen>
+  );
 }
 
 export default function App() {
   return (
     <Router>
+      <SyncManager />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route 
