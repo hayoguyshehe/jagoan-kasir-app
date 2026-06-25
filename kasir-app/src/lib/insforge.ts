@@ -20,11 +20,11 @@ export const insforge = createClient({
 const originalInvoke = insforge.functions.invoke.bind(insforge.functions);
 insforge.functions.invoke = async (functionName: string, options: any = {}) => {
   if (!options.headers?.Authorization) {
-    const { data } = await insforge.auth.getSession();
-    if (data?.session?.accessToken) {
+    const accessToken = (insforge.auth as any).tokenManager?.getAccessToken?.();
+    if (accessToken) {
       options.headers = {
         ...options.headers,
-        Authorization: `Bearer ${data.session.accessToken}`
+        Authorization: `Bearer ${accessToken}`
       };
     }
   }
