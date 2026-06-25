@@ -15,3 +15,18 @@ export const insforge = createClient({
   anonKey: insforgeAnonKey,
   functionsUrl
 });
+
+// Monkey-patch invoke to force Authorization header (since functionsUrl domain differs from baseUrl)
+const originalInvoke = insforge.functions.invoke.bind(insforge.functions);
+insforge.functions.invoke = async (functionName: string, options: any = {}) => {
+  if (!options.headers?.Authorization) {
+    const { data } = await insforge.auth.getSession();
+    if (data?.session?.accessToken) {
+      options.headers = {
+        ...options.headers,
+        Authorization: `Bearer ${data.session.accessToken}`
+      };
+    }
+  }
+  return originalInvoke(functionName, options);
+};
