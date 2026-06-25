@@ -63,55 +63,76 @@ export default function DashboardHome() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
+    <div className="space-y-8 pb-10">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back 👋</h1>
+      </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Rp {stats.totalRevenue.toLocaleString("id-ID")}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{stats.totalTransactions}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products in DB</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeStaff}</div>
-          </CardContent>
-        </Card>
+      <div>
+        <h2 className="text-xl font-bold mb-4 text-slate-800">Overview</h2>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="rounded-[1.5rem] border-none shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-1">Total Revenue</p>
+                  <h3 className="text-2xl font-bold text-slate-900">Rp {stats.totalRevenue.toLocaleString("id-ID")}</h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                  <DollarSign className="h-6 w-6 text-emerald-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="rounded-[1.5rem] border-none shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-1">Transactions</p>
+                  <h3 className="text-2xl font-bold text-slate-900">+{stats.totalTransactions}</h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                  <ShoppingCart className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="rounded-[1.5rem] border-none shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-1">Products</p>
+                  <h3 className="text-2xl font-bold text-slate-900">{stats.totalProducts}</h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+                  <Package className="h-6 w-6 text-amber-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="rounded-[1.5rem] border-none shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-1">Active Staff</p>
+                  <h3 className="text-2xl font-bold text-slate-900">{stats.activeStaff}</h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
+                  <Users className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4 rounded-[1.5rem] border-none shadow-[0_4px_24px_rgba(0,0,0,0.02)] p-2">
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle className="text-xl">Revenue Overview</CardTitle>
             <CardDescription>Daily revenue from completed transactions</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
@@ -127,8 +148,8 @@ export default function DashboardHome() {
                       axisLine={false}
                       tickFormatter={(value) => `Rp${value}`}
                     />
-                    <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
-                    <Bar dataKey="total" fill={process.env.NEXT_PUBLIC_PRIMARY_COLOR} radius={[4, 4, 0, 0]} />
+                    <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }} />
+                    <Bar dataKey="total" fill={process.env.NEXT_PUBLIC_PRIMARY_COLOR || "#03619B"} radius={[8, 8, 8, 8]} barSize={24} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
