@@ -88,10 +88,7 @@ export default function Shift() {
       // Upload to InsForge storage bucket named 'foto'
       const { error: uploadError } = await insforge.storage
         .from('foto')
-        .upload(fileName, blob, {
-          contentType: 'image/jpeg',
-          upsert: false
-        });
+        .upload(fileName, blob);
 
       if (uploadError) throw uploadError;
 
@@ -100,7 +97,7 @@ export default function Shift() {
         .from('foto')
         .getPublicUrl(fileName);
 
-      const actualPhotoUrl = publicUrlData.publicUrl;
+      const actualPhotoUrl = publicUrlData?.publicUrl || '';
 
       const response = await insforge.functions.invoke('manage-business-cycle', {
         body: {

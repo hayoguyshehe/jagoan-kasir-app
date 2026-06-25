@@ -117,7 +117,7 @@ export default function ProductsPage() {
       }
 
       const { data: publicUrlData } = insforge.storage.from('foto').getPublicUrl(filePath);
-      finalImageUrl = publicUrlData.publicUrl;
+      finalImageUrl = publicUrlData?.publicUrl || '';
     }
 
     const payload = {

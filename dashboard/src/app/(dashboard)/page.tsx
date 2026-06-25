@@ -22,7 +22,7 @@ export default function DashboardHome() {
       try {
         const [txnRes, revRes, prodRes, staffRes] = await Promise.all([
           insforge.database.from("transactions").select("id", { count: "exact" }),
-          insforge.database.from("transactions").select("total_amount").eq("status", "COMPLETED"),
+          insforge.database.from("transactions").select("total_amount, created_at").eq("status", "COMPLETED"),
           insforge.database.from("products").select("*"),
           insforge.database.from("users").select("id", { count: "exact" }).eq("role", "STAFF").eq("is_active", true)
         ]);

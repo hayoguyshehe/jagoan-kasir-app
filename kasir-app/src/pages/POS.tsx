@@ -225,16 +225,18 @@ function ServeTypePicker({ product, onSelect, onCancel, primaryColor }) {
 // ============================================
 // Checkout / Payment Modal
 // ============================================
-function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm }) {
+function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm, outletId }) {
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [paidAmount, setPaidAmount] = useState('');
-  const [discountType, setDiscountType] = useState('nominal'); // 'nominal' or 'percent'
-  const [discountInput, setDiscountInput] = useState('');
+  
+  const [voucherInput, setVoucherInput] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState(null); // { code, discountAmount }
+  const [voucherError, setVoucherError] = useState('');
+  const [isCheckingVoucher, setIsCheckingVoucher] = useState(false);
+
   const qrisImage = import.meta.env.VITE_OUTLET_QRIS_IMAGE || '';
 
-  const discountAmount = discountType === 'percent' 
-    ? Math.round(cartTotal * (parseFloat(discountInput || '0') / 100))
-    : parseInt(discountInput || '0');
+  const discountAmount = appliedVoucher ? appliedVoucher.discountAmount : 0;
   
   const finalTotal = Math.max(0, cartTotal - discountAmount);
   const paid = parseInt(paidAmount || '0');
@@ -257,39 +259,90 @@ function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm 
             </button>
           </div>
 
-          {/* Discount Section */}
+          {/* Voucher Section */}
           <div className="mb-6 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-            <label className="text-sm font-bold text-gray-700 mb-3 block">Diskon (opsional)</label>
+            <label className="text-sm font-bold text-gray-700 mb-3 block">Kode Voucher (opsional)</label>
             <div className="flex gap-2">
-              <div className="flex bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <button
-                  onClick={() => setDiscountType('nominal')}
-                  className={`px-3 py-2 text-sm font-bold transition-colors ${discountType === 'nominal' ? 'text-white' : 'text-gray-500'}`}
-                  style={discountType === 'nominal' ? { backgroundColor: primaryColor } : {}}
-                >
-                  Rp
-                </button>
-                <button
-                  onClick={() => setDiscountType('percent')}
-                  className={`px-3 py-2 text-sm font-bold transition-colors ${discountType === 'percent' ? 'text-white' : 'text-gray-500'}`}
-                  style={discountType === 'percent' ? { backgroundColor: primaryColor } : {}}
-                >
-                  %
-                </button>
-              </div>
               <input
-                type="number"
-                inputMode="numeric"
-                placeholder={discountType === 'percent' ? 'Contoh: 10' : 'Contoh: 5000'}
-                value={discountInput}
-                onChange={e => setDiscountInput(e.target.value)}
-                className="flex-1 rounded-xl bg-white border border-gray-200 px-4 py-2 text-right font-bold focus:outline-none focus:ring-2"
+                type="text"
+                placeholder="Masukkan kode..."
+                value={voucherInput}
+                onChange={e => setVoucherInput(e.target.value.toUpperCase())}
+                className="flex-1 rounded-xl bg-white border border-gray-200 px-4 py-2 font-bold focus:outline-none focus:ring-2 uppercase"
                 style={{ '--tw-ring-color': primaryColor }}
               />
+              <button
+                onClick={async () => {
+                  if (!voucherInput.trim()) return;
+                  if (!navigator.onLine) {
+                    setVoucherError("Butuh koneksi internet untuk cek voucher");
+                    return;
+                  }
+                  setVoucherError('');
+                  setIsCheckingVoucher(true);
+                  try {
+                    const { data: voucher, error } = await insforge.database
+                      .from('vouchers')
+                      .select('*')
+                      .eq('code', voucherInput.trim().toUpperCase())
+                      .eq('outlet_id', outletId)
+                      .eq('is_active', true)
+                      .single();
+                      
+                    if (error || !voucher) {
+                      setVoucherError("Voucher tidak valid atau tidak aktif");
+                      setAppliedVoucher(null);
+                      return;
+                    }
+                    
+                    if (voucher.valid_until && new Date(voucher.valid_until) < new Date()) {
+                      setVoucherError("Voucher sudah kedaluwarsa");
+                      setAppliedVoucher(null);
+                      return;
+                    }
+                    
+                    if (voucher.min_purchase > cartTotal) {
+                      setVoucherError(`Minimal belanja Rp ${voucher.min_purchase.toLocaleString('id-ID')}`);
+                      setAppliedVoucher(null);
+                      return;
+                    }
+                    
+                    let calcDiscount = 0;
+                    if (voucher.discount_type === 'PERCENTAGE') {
+                      calcDiscount = Math.floor(cartTotal * (voucher.discount_value / 100));
+                      if (voucher.max_discount && calcDiscount > voucher.max_discount) {
+                        calcDiscount = voucher.max_discount;
+                      }
+                    } else {
+                      calcDiscount = voucher.discount_value;
+                    }
+                    
+                    setAppliedVoucher({
+                      code: voucher.code,
+                      discountAmount: calcDiscount
+                    });
+                  } catch (err) {
+                    setVoucherError("Terjadi kesalahan sistem");
+                  } finally {
+                    setIsCheckingVoucher(false);
+                  }
+                }}
+                disabled={isCheckingVoucher || !voucherInput.trim()}
+                className="px-4 py-2 rounded-xl text-white font-bold transition-all disabled:opacity-50"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {isCheckingVoucher ? '...' : 'Cek'}
+              </button>
             </div>
-            {discountAmount > 0 && (
+            {voucherError && (
               <p className="mt-2 text-sm text-red-500 font-medium">
-                Potongan: - Rp {discountAmount.toLocaleString('id-ID')}
+                {voucherError}
+              </p>
+            )}
+            {appliedVoucher && (
+              <p className="mt-2 text-sm text-green-600 font-bold flex items-center gap-1">
+                <Check className="h-4 w-4" />
+                Voucher {appliedVoucher.code} berhasil memotong: -Rp {appliedVoucher.discountAmount.toLocaleString('id-ID')}
               </p>
             )}
           </div>
@@ -378,7 +431,7 @@ function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm 
 
           {/* Confirm Button */}
           <button
-            onClick={() => onConfirm({ paymentMethod, paidAmount: paid || finalTotal, discountAmount, changeAmount, finalTotal })}
+            onClick={() => onConfirm({ paymentMethod, paidAmount: paid || finalTotal, discountAmount, changeAmount, finalTotal, voucherCode: appliedVoucher?.code })}
             disabled={!canProcess}
             className="w-full h-16 rounded-2xl text-white text-lg font-extrabold shadow-lg disabled:opacity-40 disabled:shadow-none active:scale-95 transition-all flex items-center justify-center gap-2"
             style={{ backgroundColor: primaryColor }}
@@ -496,6 +549,7 @@ export default function POS() {
             price: p.price,
             type: p.type,
             stock: p.stock,
+            low_stock_threshold: p.low_stock_threshold,
             image_url: p.image_url,
             category_id: p.category_id,
             outlet_id: p.outlet_id
@@ -546,7 +600,8 @@ export default function POS() {
         })),
         paymentMethod: paymentInfo.paymentMethod,
         taxAmount: 0,
-        discountAmount: paymentInfo.discountAmount || 0
+        voucherCode: paymentInfo.voucherCode || null,
+        globalDiscount: paymentInfo.discountAmount || 0
       };
 
       if (navigator.onLine) {
@@ -689,22 +744,26 @@ export default function POS() {
                     {/* Serve type badge */}
                     {product.serve_type === 'BOTH' && (
                       <div className="absolute top-2 right-2 flex gap-1">
-                        <span className="bg-orange-100 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">🔥</span>
-                        <span className="bg-blue-100 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">❄️</span>
+                        <span className="bg-orange-100 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">🔥</span>
+                        <span className="bg-blue-100 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">❄️</span>
                       </div>
                     )}
                     {product.serve_type === 'HOT' && (
-                      <span className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">🔥 Hot</span>
+                      <span className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">🔥 Hot</span>
                     )}
                     {product.serve_type === 'COLD' && (
-                      <span className="absolute top-2 right-2 bg-blue-100 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">❄️ Cold</span>
+                      <span className="absolute top-2 right-2 bg-blue-100 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">❄️ Cold</span>
                     )}
                     {/* Stock warning */}
-                    {product.stock <= 0 && (
-                      <div className="absolute bottom-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        Stok {product.stock}
+                    {product.stock <= 0 ? (
+                      <div className="absolute bottom-2 left-2 bg-red-600 shadow-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse border border-red-400">
+                        Habis!
                       </div>
-                    )}
+                    ) : product.stock <= (product.low_stock_threshold || 5) ? (
+                      <div className="absolute bottom-2 left-2 bg-orange-500 shadow-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full animate-pulse border border-orange-400">
+                        Stok {product.stock} (Sisa Dikit)
+                      </div>
+                    ) : null}
                   </div>
                   
                   <div className="flex-1">
@@ -770,15 +829,7 @@ export default function POS() {
                       Diskon: -Rp {item.discountAmount.toLocaleString('id-ID')}
                     </div>
                   )}
-                  <button 
-                    onClick={() => {
-                      const disc = prompt('Masukkan diskon (Rp) untuk item ini:', item.discountAmount || '0');
-                      if (disc !== null) setItemDiscount(item.product.id, parseInt(disc) || 0);
-                    }}
-                    className="text-[10px] text-gray-400 hover:text-gray-700 mt-1"
-                  >
-                    Set Diskon
-                  </button>
+                  {/* No Manual item discount allowed per user request */}
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1">
@@ -860,15 +911,7 @@ export default function POS() {
                           Diskon: -Rp {item.discountAmount.toLocaleString('id-ID')}
                         </div>
                       )}
-                      <button 
-                        onClick={() => {
-                          const disc = prompt('Masukkan diskon (Rp) untuk item ini:', item.discountAmount || '0');
-                          if (disc !== null) setItemDiscount(item.product.id, parseInt(disc) || 0);
-                        }}
-                        className="text-[10px] text-gray-400 hover:text-gray-700 mt-1"
-                      >
-                        Set Diskon
-                      </button>
+                      {/* No Manual item discount allowed per user request */}
                     </div>
                     <div className="flex items-center gap-3 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
                       <button 
@@ -945,6 +988,7 @@ export default function POS() {
           cartItems={cartItems}
           cartTotal={cartTotal}
           primaryColor={primaryColor}
+          outletId={outletId}
           onClose={() => setIsCheckoutOpen(false)}
           onConfirm={handleProcessTransaction}
         />
