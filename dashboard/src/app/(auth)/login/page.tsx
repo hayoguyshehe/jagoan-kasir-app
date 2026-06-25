@@ -17,6 +17,8 @@ export default function LoginPage() {
 
   const brandName = process.env.NEXT_PUBLIC_BRAND_NAME || "Jagoan Kasir";
 
+  const bgImage = process.env.NEXT_PUBLIC_LOGIN_BG_IMAGE || "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop";
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -61,58 +63,86 @@ export default function LoginPage() {
   };
 
   return (
-    <Card>
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle
-          className="text-2xl font-bold tracking-tight"
-          style={{ color: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}
-        >
-          {brandName} Dashboard
-        </CardTitle>
-        <CardDescription>
-          Enter your email and password to login to your account
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleLogin}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-              {error}
+    <div className="flex w-full max-w-[1200px] h-[800px] max-h-[90vh] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+      {/* LEFT COLUMN: Login Form */}
+      <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center items-center lg:items-start h-full overflow-y-auto">
+        <div className="w-full max-w-sm mx-auto flex flex-col items-center">
+          <div className="mb-10 text-center">
+            <h2 className="text-xl font-bold mb-6" style={{ color: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+              {brandName}
+            </h2>
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              Manage your<br />business
+            </h1>
+          </div>
+
+          <form onSubmit={handleLogin} className="w-full space-y-5">
+            {error && (
+              <div className="bg-red-50 text-red-500 p-4 rounded-2xl text-sm font-medium text-center">
+                {error}
+              </div>
+            )}
+            
+            <div className="space-y-1">
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="Email address" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full h-14 bg-gray-100/80 border-0 rounded-full px-6 text-base focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:bg-white transition-all placeholder:text-gray-400 font-medium"
+                style={{ '--tw-ring-color': process.env.NEXT_PUBLIC_PRIMARY_COLOR } as any}
+              />
             </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="m@example.com" 
-              required 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            
+            <div className="space-y-1 relative">
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="Password"
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-14 bg-gray-100/80 border-0 rounded-full px-6 pr-12 text-base focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:bg-white transition-all placeholder:text-gray-400 font-medium"
+                style={{ '--tw-ring-color': process.env.NEXT_PUBLIC_PRIMARY_COLOR } as any}
+              />
+            </div>
+
+            <Button 
+              className="w-full h-14 rounded-full text-lg font-bold shadow-lg mt-8 hover:opacity-90 transition-opacity" 
+              type="submit" 
+              disabled={loading}
+              style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}
+            >
+              {loading ? "Signing in..." : "Start"}
+            </Button>
+          </form>
+          
+          <div className="mt-10 text-gray-500 font-medium text-sm">
+            Lost password? <span className="text-gray-900 font-bold cursor-pointer">Reset it</span>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Image Area */}
+      <div className="hidden lg:block w-1/2 p-4 h-full relative">
+        <div 
+          className="w-full h-full rounded-[2rem] overflow-hidden bg-cover bg-center shadow-inner relative"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        >
+          {/* Subtle overlay to ensure the image looks good */}
+          <div className="absolute inset-0 bg-black/10 mix-blend-multiply"></div>
+          
+          {/* Optional decorative tooltips similar to the reference */}
+          <div className="absolute top-1/4 left-1/4 bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 text-sm shadow-xl font-medium">
+            Manage Outlets
           </div>
-        </CardContent>
-        <CardFooter>
-          <Button 
-            className="w-full" 
-            type="submit" 
-            disabled={loading}
-            style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+          <div className="absolute bottom-1/3 right-1/4 bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-2xl border border-white/20 text-sm shadow-xl font-medium">
+            Track Sales
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
