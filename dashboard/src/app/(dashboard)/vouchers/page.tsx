@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
 import { Button } from "@/components/ui/button";
@@ -145,9 +146,12 @@ export default function VouchersPage() {
         <>
           <div className="flex justify-end">
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-              <Button onClick={() => setIsDialogOpen(true)} style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
-                <Plus className="mr-2 h-4 w-4" /> Tambah Voucher
-              </Button>
+              {/* @ts-ignore */}
+              <DialogTrigger asChild>
+                <Button onClick={() => setIsDialogOpen(true)} style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
+                  <Plus className="mr-2 h-4 w-4" /> Tambah Voucher
+                </Button>
+              </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{editingId ? "Edit Voucher" : "Tambah Voucher Baru"}</DialogTitle>
@@ -191,8 +195,8 @@ export default function VouchersPage() {
                     <Input type="datetime-local" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
                   </div>
                   <div className="flex justify-end pt-4">
-                    <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
-                      Simpan
+                    <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
+                      Simpan Voucher
                     </Button>
                   </div>
                 </form>

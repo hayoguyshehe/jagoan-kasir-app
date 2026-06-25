@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -113,7 +114,7 @@ export default function LoginPage() {
               className="w-full h-14 rounded-full text-lg font-bold shadow-lg mt-8 hover:opacity-90 transition-opacity" 
               type="submit" 
               disabled={loading}
-              style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}
+              style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}
             >
               {loading ? "Signing in..." : "Start"}
             </Button>

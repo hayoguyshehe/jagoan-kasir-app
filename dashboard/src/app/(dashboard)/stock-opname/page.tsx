@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ListPlus } from "lucide-react";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
 import { Button } from "@/components/ui/button";
@@ -130,7 +131,7 @@ export default function StockOpnamePage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               {/* @ts-ignore */}
               <DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                   <ListPlus className="mr-2 h-4 w-4" /> Stok Opname Baru
                 </Button>
               </DialogTrigger>
@@ -181,7 +182,7 @@ export default function StockOpnamePage() {
                     <Label>Alasan / Catatan</Label>
                     <Input value={reason} onChange={e => setReason(e.target.value)} />
                   </div>
-                  <Button type="submit" className="w-full" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                  <Button type="submit" className="w-full" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                     Simpan Stok Opname
                   </Button>
                 </form>

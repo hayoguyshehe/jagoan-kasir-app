@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ListPlus, Trash2 } from "lucide-react";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
 import { Button } from "@/components/ui/button";
@@ -229,7 +230,7 @@ export default function RecipesPage() {
                         </select>
                       </div>
                     </div>
-                    <Button type="submit" className="w-full" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                    <Button type="submit" className="w-full" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                       Tambah ke Resep
                     </Button>
                   </form>

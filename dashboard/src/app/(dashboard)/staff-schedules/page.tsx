@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
 import { Button } from "@/components/ui/button";
@@ -330,7 +331,7 @@ export default function StaffSchedulesPage() {
                       <Trash2 className="h-4 w-4 mr-2" /> Hapus
                     </Button>
                   ) : <div></div>}
-                  <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                  <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                     Simpan Jadwal
                   </Button>
                 </div>

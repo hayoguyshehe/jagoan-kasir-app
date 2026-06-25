@@ -86,7 +86,7 @@ export default function SecurityPage() {
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800">
-                      {log.event_type.replace(/_/g, ' ')}
+                      {(log.event_type || 'UNKNOWN').replace(/_/g, ' ')}
                     </span>
                   </TableCell>
                   <TableCell className="text-xs text-gray-600 font-mono">

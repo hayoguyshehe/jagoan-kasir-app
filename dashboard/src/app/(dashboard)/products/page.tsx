@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
 import { Button } from "@/components/ui/button";
@@ -176,7 +177,7 @@ export default function ProductsPage() {
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
               {/* @ts-ignore */}
               <DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                   <Plus className="mr-2 h-4 w-4" /> Tambah Produk
                 </Button>
               </DialogTrigger>
@@ -254,7 +255,7 @@ export default function ProductsPage() {
                     </div>
                   </div>
                   <div className="flex justify-end pt-4">
-                    <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                    <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                       Simpan
                     </Button>
                   </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { insforge } from "@/lib/insforge";
+import { getContrastColor } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,7 +131,7 @@ export default function SettingsPage() {
             }}>
               {/* @ts-ignore */}
 <DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                   <Plus className="mr-2 h-4 w-4" /> Add Outlet
                 </Button>
               </DialogTrigger>
@@ -152,7 +153,7 @@ export default function SettingsPage() {
                     <Input value={phone} onChange={e => setPhone(e.target.value)} />
                   </div>
                   <div className="flex justify-end pt-4">
-                    <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                    <Button type="submit" style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
                       Save Outlet
                     </Button>
                   </div>
