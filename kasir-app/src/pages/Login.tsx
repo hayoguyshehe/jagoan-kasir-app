@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { insforge } from '../lib/insforge';
+import { getContrastColor } from '../lib/utils';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -127,8 +128,8 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-14 rounded-full text-lg text-white font-bold shadow-lg mt-8 hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ backgroundColor: primaryColor }}
+                className="w-full h-14 rounded-2xl font-bold text-lg active:scale-95 transition-transform flex items-center justify-center shadow-xl shadow-black/20"
+                style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
               >
                 {loading ? 'Signing in...' : 'Start'}
               </button>

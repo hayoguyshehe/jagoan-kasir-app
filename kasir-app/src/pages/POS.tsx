@@ -6,6 +6,7 @@ import { useCartStore } from '../store/useCartStore';
 import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { v4 as uuidv4 } from 'uuid';
+import { getContrastColor } from '../lib/utils';
 
 // ============================================
 // Receipt Component (Struk Visual)
@@ -173,8 +174,8 @@ function ReceiptView({ transaction, cartItems, cartTotal, discountAmount, discou
         <div className="p-6 pt-0 print:hidden">
           <button
             onClick={onClose}
-            className="w-full h-14 rounded-2xl font-bold text-white active:scale-95 transition-transform"
-            style={{ backgroundColor: primaryColor }}
+            className="w-full h-14 rounded-2xl font-bold active:scale-95 transition-transform"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             Transaksi Baru
           </button>
@@ -328,8 +329,8 @@ function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm,
                   }
                 }}
                 disabled={isCheckingVoucher || !voucherInput.trim()}
-                className="px-4 py-2 rounded-xl text-white font-bold transition-all disabled:opacity-50"
-                style={{ backgroundColor: primaryColor }}
+                className="px-4 py-2 rounded-xl font-bold transition-all disabled:opacity-50"
+                style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
               >
                 {isCheckingVoucher ? '...' : 'Cek'}
               </button>
@@ -433,8 +434,8 @@ function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm,
           <button
             onClick={() => onConfirm({ paymentMethod, paidAmount: paid || finalTotal, discountAmount, changeAmount, finalTotal, voucherCode: appliedVoucher?.code })}
             disabled={!canProcess}
-            className="w-full h-16 rounded-2xl text-white text-lg font-extrabold shadow-lg disabled:opacity-40 disabled:shadow-none active:scale-95 transition-all flex items-center justify-center gap-2"
-            style={{ backgroundColor: primaryColor }}
+            className="w-full h-16 rounded-2xl text-lg font-extrabold shadow-lg disabled:opacity-40 disabled:shadow-none active:scale-95 transition-all flex items-center justify-center gap-2"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             <Check className="h-6 w-6" />
             Proses Pembayaran
@@ -690,8 +691,8 @@ export default function POS() {
             />
           </div>
           <button 
-            className="hidden sm:flex items-center gap-2 px-6 py-3.5 rounded-2xl text-white font-medium shadow-sm transition-transform active:scale-95"
-            style={{ backgroundColor: primaryColor }}
+            className="hidden sm:flex items-center gap-2 px-6 py-3.5 rounded-2xl font-medium shadow-sm transition-transform active:scale-95"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             Filter
             <SlidersHorizontal className="h-4 w-4" />
@@ -785,8 +786,8 @@ export default function POS() {
                     </button>
                     <button 
                       onClick={() => handleProductTap(product)}
-                      className="flex-1 h-11 rounded-2xl text-white font-bold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center"
-                      style={{ backgroundColor: primaryColor }}
+                      className="flex-1 h-11 rounded-2xl font-bold text-sm shadow-sm transition-transform active:scale-95 flex items-center justify-center"
+                      style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
                     >
                       Order Now
                     </button>
@@ -871,8 +872,8 @@ export default function POS() {
           <button 
             onClick={() => setIsCheckoutOpen(true)}
             disabled={cartItems.length === 0}
-            className="w-full rounded-2xl py-4 text-white font-bold text-lg shadow-lg shadow-current/20 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
-            style={{ backgroundColor: primaryColor }}
+            className="w-full rounded-2xl py-4 font-bold text-lg shadow-lg shadow-current/20 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             <ShoppingCart className="h-5 w-5" />
             Bayar Sekarang
@@ -943,8 +944,8 @@ export default function POS() {
               <button 
                 onClick={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
                 disabled={cartItems.length === 0}
-                className="w-full rounded-2xl py-4 text-white font-bold text-lg disabled:opacity-50 active:scale-95 transition-transform shadow-lg"
-                style={{ backgroundColor: primaryColor }}
+                className="w-full rounded-2xl py-4 font-bold text-lg disabled:opacity-50 active:scale-95 transition-transform shadow-lg"
+                style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
               >
                 Bayar Sekarang
               </button>
@@ -958,8 +959,8 @@ export default function POS() {
         <div className="md:hidden fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-40">
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="flex w-full items-center justify-between rounded-2xl px-6 py-4 text-white shadow-xl active:scale-95 transition-transform"
-            style={{ backgroundColor: primaryColor }}
+            className="flex w-full items-center justify-between rounded-2xl px-6 py-4 shadow-xl active:scale-95 transition-transform"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">

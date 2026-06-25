@@ -2,6 +2,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, History, Clock, Settings } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
+import { getContrastColor } from '../../lib/utils';
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -24,8 +25,8 @@ export default function AppLayout() {
       <aside className="hidden md:flex h-full w-24 lg:w-64 flex-col bg-white border-r border-gray-100 py-6">
         <div className="flex items-center justify-center lg:justify-start px-6 mb-10">
           <div 
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-white font-bold mr-0 lg:mr-3 shadow-sm"
-            style={{ backgroundColor: primaryColor }}
+            className="flex h-10 w-10 items-center justify-center rounded-xl font-bold mr-0 lg:mr-3 shadow-sm"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             {brandName.charAt(0)}
           </div>

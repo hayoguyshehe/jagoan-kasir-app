@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { insforge } from '../lib/insforge';
 import { Lock } from 'lucide-react';
 
+import { getContrastColor } from '../lib/utils';
+
 // Idle timeout in milliseconds (7 minutes = 420000ms)
 // For testing purposes, you can change this to 5000 (5 seconds)
 const IDLE_TIMEOUT_MS = 7 * 60 * 1000; 
@@ -105,8 +107,8 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-xl text-white font-bold disabled:opacity-50"
-            style={{ backgroundColor: primaryColor }}
+            className="w-full mt-8 h-16 rounded-2xl font-extrabold text-xl shadow-xl shadow-black/20 active:scale-95 transition-all flex items-center justify-center"
+            style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
           >
             {loading ? 'Unlocking...' : 'Unlock'}
           </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Camera, Play, Square, Clock } from 'lucide-react';
 import { insforge } from '../lib/insforge';
+import { getContrastColor } from '../lib/utils';
 
 export default function Shift() {
   const [attendance, setAttendance] = useState<any>(null);
@@ -223,8 +224,8 @@ export default function Shift() {
             <button 
               onClick={handleClockIn}
               disabled={!photoUrl || !openingCash}
-              className="flex w-full items-center justify-center rounded-lg py-4 text-white font-bold shadow-md active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
-              style={{ backgroundColor: primaryColor }}
+              className="flex w-full items-center justify-center rounded-lg py-4 font-bold shadow-md active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
+              style={{ backgroundColor: primaryColor, color: getContrastColor(primaryColor) }}
             >
               <Play className="mr-2 h-5 w-5 fill-current" />
               Start Shift (Clock In)
