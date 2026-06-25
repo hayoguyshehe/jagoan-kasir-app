@@ -137,7 +137,7 @@ export default function Shift() {
           outletId: attendance.outlet_id
         }
       });
-
+      
       if (response.error) throw response.error;
       
       alert("Clock-out successful! Shift closed.");

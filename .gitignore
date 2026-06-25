@@ -74,3 +74,6 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# InsForge & AI agent skills
+.insforge
