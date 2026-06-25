@@ -1,0 +1,1 @@
+UPDATE business_cycles SET status = 'CLOSED' WHERE id NOT IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER(PARTITION BY outlet_id ORDER BY created_at DESC) as rn FROM business_cycles WHERE status = 'ACTIVE') t WHERE t.rn = 1) AND status = 'ACTIVE';

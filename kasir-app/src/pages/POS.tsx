@@ -645,6 +645,8 @@ export default function POS() {
       staffId: payload.staffId,
       outletId: payload.outletId,
       paymentMethod: payload.paymentMethod,
+      voucherCode: payload.voucherCode || null,
+      globalDiscount: payload.globalDiscount || 0,
       items: payload.items,
       status: 'PENDING',
       createdAt: Date.now()

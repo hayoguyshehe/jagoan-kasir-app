@@ -23,6 +23,8 @@ export interface OfflineTransaction {
     quantity: number;
     serveType: 'HOT' | 'COLD' | null;
   }>;
+  voucherCode?: string | null;
+  globalDiscount?: number;
   status: 'PENDING' | 'SYNCED' | 'FAILED';
   createdAt: number; // timestamp
 }

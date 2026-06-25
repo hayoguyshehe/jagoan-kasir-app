@@ -104,6 +104,7 @@ export default function ReportsPage() {
         end_date.setHours(23, 59, 59, 999);
       }
 
+      // @ts-ignore - rpc exists on SupabaseClient but might be missing in InsForgeClient wrapper types
       const { data, error } = await insforge.rpc("get_sales_report", {
         p_outlet_id: selectedOutletId,
         p_start_date: start_date.toISOString(),
@@ -195,7 +196,7 @@ export default function ReportsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 print-hide">
-            <Select value={dateRange} onValueChange={(val) => setDateRange(val)}>
+            <Select value={dateRange} onValueChange={(val) => setDateRange(val || "today")}>
               <SelectTrigger className="w-[180px] bg-white">
                 <SelectValue placeholder="Date Range" />
               </SelectTrigger>
@@ -328,7 +329,7 @@ export default function ReportsPage() {
                           tick={{ fontSize: 12 }}
                         />
                         <Tooltip 
-                          formatter={(value: any, name: string) => {
+                          formatter={(value: any, name: any) => {
                             if (name === 'revenue') return [`Rp ${Number(value).toLocaleString('id-ID')}`, 'Pendapatan'];
                             return [value, 'Transaksi'];
                           }}

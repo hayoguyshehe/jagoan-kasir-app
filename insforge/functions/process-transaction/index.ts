@@ -225,12 +225,15 @@ export default async function (req: Request) {
 
     if (itemsError) throw itemsError;
 
-    // 6. Update Stocks (using upsert since we have primary keys)
-    const { error: updateError } = await insforge
-      .from('products')
-      .upsert(stockUpdates);
-
-    if (updateError) throw updateError;
+    // 6. Update Stocks individually to avoid upsert NOT NULL constraint errors
+    const updatePromises = stockUpdates.map(update => 
+      insforge.from('products').update({ stock: update.stock }).eq('id', update.id)
+    );
+    const updateResults = await Promise.all(updatePromises);
+    
+    for (const res of updateResults) {
+      if (res.error) throw res.error;
+    }
 
     return new Response(JSON.stringify({ success: true, transaction }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

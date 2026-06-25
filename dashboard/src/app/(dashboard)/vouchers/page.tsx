@@ -145,11 +145,9 @@ export default function VouchersPage() {
         <>
           <div className="flex justify-end">
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
-                  <Plus className="mr-2 h-4 w-4" /> Tambah Voucher
-                </Button>
-              </DialogTrigger>
+              <Button onClick={() => setIsDialogOpen(true)} style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR }}>
+                <Plus className="mr-2 h-4 w-4" /> Tambah Voucher
+              </Button>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{editingId ? "Edit Voucher" : "Tambah Voucher Baru"}</DialogTitle>

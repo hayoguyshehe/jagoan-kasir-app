@@ -21,7 +21,8 @@ export default function SyncManager() {
               items: tx.items,
               paymentMethod: tx.paymentMethod,
               taxAmount: 0,
-              discountAmount: 0, // Should store this accurately in payload next iteration
+              discountAmount: tx.globalDiscount || 0,
+              voucherCode: tx.voucherCode || null,
               cycleId: tx.cycleId
             };
 
