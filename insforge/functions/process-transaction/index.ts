@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@insforge/sdk";
 
 // Define the shape of our incoming request
 interface TransactionRequest {
@@ -37,7 +37,7 @@ export default async function (req: Request) {
     // We use the service role key to perform DB updates bypass RLS, 
     // but we can also use the auth header to verify the user.
     // In this edge function, we will bypass RLS since it's a complex transaction that updates multiple tables.
-    const insforge = createClient(insforgeUrl, insforgeServiceKey);
+    const insforge = createAdminClient({ baseUrl: insforgeUrl, apiKey: insforgeServiceKey });
 
     // Verify user token just to be secure
     const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));

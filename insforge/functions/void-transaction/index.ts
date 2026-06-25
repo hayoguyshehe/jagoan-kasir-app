@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@insforge/sdk";
 
 // Define the shape of our incoming request
 interface VoidRequest {
@@ -24,7 +24,7 @@ export default async function (req: Request) {
     const insforgeUrl = Deno.env.get("INSFORGE_URL") ?? "";
     const insforgeServiceKey = Deno.env.get("INSFORGE_SERVICE_ROLE_KEY") ?? "";
 
-    const insforge = createClient(insforgeUrl, insforgeServiceKey);
+    const insforge = createAdminClient({ baseUrl: insforgeUrl, apiKey: insforgeServiceKey });
 
     // Verify user token
     const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));

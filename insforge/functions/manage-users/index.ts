@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@insforge/sdk";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +17,10 @@ export default async function (req: Request) {
     const insforgeServiceKey = Deno.env.get("INSFORGE_SERVICE_ROLE_KEY") ?? "";
 
     // We use the service_role key to bypass RLS and be able to create auth users
-    const insforge = createClient(insforgeUrl, insforgeServiceKey);
+    const insforge = createAdminClient({
+      baseUrl: insforgeUrl,
+      apiKey: insforgeServiceKey
+    });
 
     // Verify caller is an Admin/Owner
     const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
