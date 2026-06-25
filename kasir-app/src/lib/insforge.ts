@@ -7,7 +7,11 @@ if (!insforgeUrl || !insforgeAnonKey) {
   throw new Error("Missing VITE_INSFORGE_URL or VITE_INSFORGE_ANON_KEY in environment variables");
 }
 
+const appKey = new URL(insforgeUrl).hostname.split('.')[0];
+const functionsUrl = `https://${appKey}.function2.insforge.app`;
+
 export const insforge = createClient({ 
   baseUrl: insforgeUrl, 
-  anonKey: insforgeAnonKey 
+  anonKey: insforgeAnonKey,
+  functionsUrl
 });
