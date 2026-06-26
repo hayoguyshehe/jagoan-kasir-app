@@ -11,7 +11,7 @@ COPY dashboard/package.json ./dashboard/
 COPY kasir-app/package.json ./kasir-app/
 COPY packages/shared/package.json ./packages/shared/
 
-RUN npm config set registry https://registry.npmmirror.com/ && npm ci
+RUN npm config set registry https://registry.npmmirror.com/ && npm install
 
 # Rebuild the source code only when needed
 FROM base AS builder
