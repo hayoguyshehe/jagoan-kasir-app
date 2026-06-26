@@ -8,7 +8,7 @@ COPY dashboard/package.json ./dashboard/
 COPY kasir-app/package.json ./kasir-app/
 COPY packages/shared/package.json ./packages/shared/
 
-RUN npm config set registry https://registry.npmmirror.com/ && npm install
+RUN rm -f package-lock.json && npm config set registry https://registry.npmmirror.com/ && npm install
 
 COPY . .
 
