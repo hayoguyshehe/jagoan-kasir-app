@@ -7,8 +7,10 @@ if (!insforgeUrl || !insforgeAnonKey) {
   throw new Error("Missing VITE_INSFORGE_URL or VITE_INSFORGE_ANON_KEY in environment variables");
 }
 
-const appKey = new URL(insforgeUrl).hostname.split('.')[0];
-const functionsUrl = `https://${appKey}.function2.insforge.app`;
+// Use Dasbor Next.js API routes for edge functions
+const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL;
+if (!dashboardUrl) throw new Error("Missing VITE_DASHBOARD_URL environment variable (must point to Dasbor URL)");
+const functionsUrl = `${dashboardUrl}/api/functions`;
 
 export const insforge = createClient({ 
   baseUrl: insforgeUrl, 

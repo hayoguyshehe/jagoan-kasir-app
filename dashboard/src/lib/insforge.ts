@@ -7,8 +7,9 @@ if (!insforgeUrl || !insforgeAnonKey) {
   throw new Error("Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY in environment variables");
 }
 
-const appKey = new URL(insforgeUrl).hostname.split('.')[0];
-const functionsUrl = `https://${appKey}.function2.insforge.app`;
+// Use local Next.js API routes for edge functions
+const dashboardUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:3000');
+const functionsUrl = `${dashboardUrl}/api/functions`;
 
 export const insforge = createClient({ 
   baseUrl: insforgeUrl, 
