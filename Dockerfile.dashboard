@@ -42,8 +42,8 @@ RUN adduser --system --uid 1001 nextjs
 
 # Automatically leverage output traces to reduce image size
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./dashboard/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public ./dashboard/public
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public ./public
 
 USER nextjs
 
@@ -52,4 +52,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "dashboard/server.js"]
+CMD ["node", "server.js"]
