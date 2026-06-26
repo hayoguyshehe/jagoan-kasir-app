@@ -10,15 +10,31 @@ if (!insforgeUrl || !insforgeAnonKey) {
 // Use Dasbor Next.js API routes for edge functions
 const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL;
 if (!dashboardUrl) throw new Error("Missing VITE_DASHBOARD_URL environment variable (must point to Dasbor URL)");
-const functionsUrl = `${dashboardUrl}/api/functions`;
+const functionsUrl,
+  global: {
+    fetch: customFetch
+  } = `${dashboardUrl}/api/functions`;
+
+const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
+  if (options && options.credentials === 'include') {
+    options.credentials = 'omit';
+  }
+  return fetch(url, options as any);
+};
 
 export const insforge = createClient({ 
   baseUrl: insforgeUrl, 
   anonKey: insforgeAnonKey,
-  functionsUrl
+  functionsUrl,
+  global: {
+    fetch: customFetch
+  }
 });
 
-// Monkey-patch invoke to force Authorization header (since functionsUrl domain differs from baseUrl)
+// Monkey-patch invoke to force Authorization header (since functionsUrl,
+  global: {
+    fetch: customFetch
+  } domain differs from baseUrl)
 const originalInvoke = insforge.functions.invoke.bind(insforge.functions);
 insforge.functions.invoke = async (functionName: string, options: any = {}) => {
   if (!options.headers?.Authorization) {
