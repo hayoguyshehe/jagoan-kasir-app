@@ -13,19 +13,16 @@ if (!dashboardUrl) throw new Error("Missing VITE_DASHBOARD_URL environment varia
 const functionsUrl = `${dashboardUrl}/api/functions`;
 
 const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
-  if (options && options.credentials === 'include') {
-    options.credentials = 'omit';
-  }
-  return fetch(url, options as any);
+  const newOptions = { ...options };
+  newOptions.credentials = 'omit';
+  return fetch(url, newOptions as any);
 };
 
 export const insforge = createClient({ 
   baseUrl: insforgeUrl, 
   anonKey: insforgeAnonKey,
   functionsUrl,
-  global: {
-    fetch: customFetch
-  }
+  fetch: customFetch
 });
 
 // Monkey-patch invoke to force Authorization header (since functionsUrl domain differs from baseUrl)
