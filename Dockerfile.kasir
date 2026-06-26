@@ -12,10 +12,12 @@ RUN npm ci
 
 COPY . .
 
-# Pass BRAND_ENV as an argument to load correct variables at build time
-ARG BRAND_ENV=.env.local
-COPY ${BRAND_ENV} kasir-app/.env.production
-COPY ${BRAND_ENV} kasir-app/.env.local
+# Accept build variables from Coolify
+ARG VITE_INSFORGE_URL
+ENV VITE_INSFORGE_URL=$VITE_INSFORGE_URL
+
+ARG VITE_INSFORGE_ANON_KEY
+ENV VITE_INSFORGE_ANON_KEY=$VITE_INSFORGE_ANON_KEY
 
 # Build the kasir-app workspace
 RUN npm run build -w kasir-app

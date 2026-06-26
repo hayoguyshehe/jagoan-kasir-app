@@ -21,11 +21,12 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Pass BRAND_ENV as an argument (e.g. .env.local or .env.2trees)
-ARG BRAND_ENV=.env.local
-# Next.js requires the env variables at build time to bake NEXT_PUBLIC_ values
-COPY ${BRAND_ENV} dashboard/.env.production
-COPY ${BRAND_ENV} dashboard/.env.local
+# Accept build variables from Coolify
+ARG NEXT_PUBLIC_INSFORGE_URL
+ENV NEXT_PUBLIC_INSFORGE_URL=$NEXT_PUBLIC_INSFORGE_URL
+
+ARG NEXT_PUBLIC_INSFORGE_ANON_KEY
+ENV NEXT_PUBLIC_INSFORGE_ANON_KEY=$NEXT_PUBLIC_INSFORGE_ANON_KEY
 
 RUN npm run build -w dashboard
 
