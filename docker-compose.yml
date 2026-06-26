@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # -----------------------------------
+  # TEH MAESTRO (BRAND 1)
+  # -----------------------------------
+  dashboard-maestro:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+      args:
+        - BRAND_ENV=.env.local
+    container_name: dashboard-maestro
+    ports:
+      - "3000:3000"
+    restart: always
+
+  kasir-maestro:
+    build:
+      context: .
+      dockerfile: Dockerfile.kasir
+      args:
+        - BRAND_ENV=.env.local
+    container_name: kasir-maestro
+    ports:
+      - "8000:80"
+    restart: always
+
+  # -----------------------------------
+  # 2 TREES COFFEE (BRAND 2)
+  # -----------------------------------
+  dashboard-2trees:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+      args:
+        - BRAND_ENV=.env.2trees
+    container_name: dashboard-2trees
+    ports:
+      - "3001:3000"
+    restart: always
+
+  kasir-2trees:
+    build:
+      context: .
+      dockerfile: Dockerfile.kasir
+      args:
+        - BRAND_ENV=.env.2trees
+    container_name: kasir-2trees
+    ports:
+      - "8001:80"
+    restart: always

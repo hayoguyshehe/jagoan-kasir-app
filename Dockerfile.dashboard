@@ -1,0 +1,54 @@
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Copy all package files for workspaces
+COPY package.json package-lock.json* ./
+COPY dashboard/package.json ./dashboard/
+COPY kasir-app/package.json ./kasir-app/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN npm ci
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Pass BRAND_ENV as an argument (e.g. .env.local or .env.2trees)
+ARG BRAND_ENV=.env.local
+# Next.js requires the env variables at build time to bake NEXT_PUBLIC_ values
+COPY ${BRAND_ENV} dashboard/.env.production
+COPY ${BRAND_ENV} dashboard/.env.local
+
+RUN npm run build -w dashboard
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Automatically leverage output traces to reduce image size
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./dashboard/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public ./dashboard/public
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["node", "dashboard/server.js"]
