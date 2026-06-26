@@ -64,15 +64,26 @@ export default function TransactionsPage() {
     if (!selectedTxnId || !voidPin || !voidReason) return;
 
     try {
-      const response = await insforge.functions.invoke("void-transaction", {
-        body: {
+      const session = await insforge.auth.getSession();
+      const token = session.data.session?.access_token;
+      
+      const res = await fetch('/api/functions/void-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
           transactionId: selectedTxnId,
           pin: voidPin,
           reason: voidReason
-        }
+        })
       });
 
-      if (response.error) throw response.error;
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+      }
       
       setIsVoidDialogOpen(false);
       fetchTransactions();

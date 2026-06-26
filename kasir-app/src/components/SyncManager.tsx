@@ -26,11 +26,22 @@ export default function SyncManager() {
               cycleId: tx.cycleId
             };
 
-            const response = await insforge.functions.invoke('process-transaction', {
-              body: payload
+            const session = await insforge.auth.getSession();
+            const token = session.data.session?.access_token;
+            
+            const res = await fetch(`${import.meta.env.VITE_DASHBOARD_URL}/api/functions/process-transaction`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(payload)
             });
-
-            if (response.error) throw response.error;
+            
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+            }
 
             // Delete from queue on success
             await db.offline_transactions.delete(tx.id);

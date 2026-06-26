@@ -83,16 +83,28 @@ export default function StaffPage() {
     if (!pin || pin.length < 6) return alert("PIN must be at least 6 digits");
     
     try {
-      const res = await insforge.functions.invoke('manage-users', {
-        body: {
+      const session = await insforge.auth.getSession();
+      const token = session.data.session?.access_token;
+      
+      const res = await fetch('/api/functions/manage-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
           action: 'create_staff',
           name,
           pin,
           role,
           outletId: selectedOutletId
-        }
+        })
       });
-      if (res.error) throw res.error;
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+      }
       alert("Staff created successfully!");
       setIsDialogOpen(false);
       fetchUsers();
@@ -106,14 +118,26 @@ export default function StaffPage() {
     if (!selectedStaff || !pin || pin.length < 6) return alert("PIN must be at least 6 digits");
     
     try {
-      const res = await insforge.functions.invoke('manage-users', {
-        body: {
+      const session = await insforge.auth.getSession();
+      const token = session.data.session?.access_token;
+      
+      const res = await fetch('/api/functions/manage-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
           action: 'reset_pin',
           staffId: selectedStaff.id,
           pin
-        }
+        })
       });
-      if (res.error) throw res.error;
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
+      }
       alert("PIN reset successfully!");
       setIsResetDialog(false);
       fetchUsers();
