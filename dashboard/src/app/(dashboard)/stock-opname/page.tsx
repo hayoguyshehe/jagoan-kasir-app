@@ -72,28 +72,35 @@ export default function StockOpnamePage() {
     }
 
     try {
-      const session = await insforge.auth.getSession();
-      const token = session.data.session?.access_token;
+      // Because Edge Function stock-opname doesn't exist yet, we do direct DB insert for now.
+      const targetProduct = products.find(p => p.id === selectedProductId);
+      if (!targetProduct) throw new Error("Produk tidak ditemukan");
+
+      const oldStock = targetProduct.stock;
+      const parsedNewStock = parseInt(newStock);
+
+      // 1. Insert to stock_adjustment_logs
+      const { error: logError } = await insforge.database
+        .from("stock_adjustment_logs")
+        .insert({
+          product_id: selectedProductId,
+          outlet_id: selectedOutletId,
+          adjusted_by: userId,
+          old_stock: oldStock,
+          new_stock: parsedNewStock,
+          adjustment_type: adjustmentType,
+          reason,
+        });
       
-      const res = await fetch('/api/functions/stock-opname', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: selectedProductId,
-          outletId: selectedOutletId,
-          newStock: parsedNewStock,
-          adjustmentType,
-          reason
-        })
-      });
-      
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
-      }
+      if (logError) throw logError;
+
+      // 2. Update stock in products table
+      const { error: updateError } = await insforge.database
+        .from("products")
+        .update({ stock: parsedNewStock })
+        .eq("id", selectedProductId);
+
+      if (updateError) throw updateError;
       
       setIsDialogOpen(false);
       setSelectedProductId("");

@@ -37,26 +37,15 @@ export default function History() {
     if (!reason) return;
 
     try {
-      const session = await insforge.auth.getSession();
-      const token = session.data.session?.access_token;
-      
-      const res = await fetch(`${import.meta.env.VITE_DASHBOARD_URL}/api/functions/void-transaction`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const response = await insforge.functions.invoke('void-transaction', {
+        body: {
           transactionId: txnId,
           pin,
           reason
-        })
+        }
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
-      }
+      if (response.error) throw response.error;
       
       alert('Transaction voided successfully!');
       fetchHistory();

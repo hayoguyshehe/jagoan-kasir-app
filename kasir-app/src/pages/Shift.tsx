@@ -100,28 +100,17 @@ export default function Shift() {
 
       const actualPhotoUrl = publicUrlData?.publicUrl || '';
 
-      const session = await insforge.auth.getSession();
-      const token = session.data.session?.access_token;
-      
-      const res = await fetch(`${import.meta.env.VITE_DASHBOARD_URL}/api/functions/manage-business-cycle`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const response = await insforge.functions.invoke('manage-business-cycle', {
+        body: {
           action: 'clock_in',
           outletId: userRecord?.outlet_id,
           userId: userData.user?.id,
           openingCash: parseInt(openingCash),
           photoUrl: actualPhotoUrl
-        })
+        }
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
-      }
+      if (response.error) throw response.error;
       
       alert("Clock-in successful!");
       setPhotoUrl(null);
@@ -139,26 +128,15 @@ export default function Shift() {
     try {
       const { data: userData } = await insforge.auth.getCurrentUser();
       
-      const session = await insforge.auth.getSession();
-      const token = session.data.session?.access_token;
-      
-      const res = await fetch(`${import.meta.env.VITE_DASHBOARD_URL}/api/functions/manage-business-cycle`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const response = await insforge.functions.invoke('manage-business-cycle', {
+        body: {
           action: 'clock_out',
           userId: userData.user?.id,
           outletId: attendance.outlet_id
-        })
+        }
       });
       
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `HTTP error! status: ${res.status}`);
-      }
+      if (response.error) throw response.error;
       
       alert("Clock-out successful! Shift closed.");
       fetchAttendanceStatus();
