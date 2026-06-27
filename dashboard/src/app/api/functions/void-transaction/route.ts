@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@insforge/sdk';
+import { createClient } from '@supabase/supabase-js';
 
 interface VoidRequest {
   transactionId: string;
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const insforgeUrl = process.env.NEXT_PUBLIC_INSFORGE_URL || "";
     const insforgeServiceKey = process.env.INSFORGE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
 
-    const insforge = createAdminClient({ baseUrl: insforgeUrl, apiKey: insforgeServiceKey });
+    const insforge = createClient(insforgeUrl, insforgeServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
     // Verify user token
     const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));

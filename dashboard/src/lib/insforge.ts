@@ -1,4 +1,4 @@
-import { createClient } from '@insforge/sdk';
+import { createClient } from '@supabase/supabase-js';
 
 const insforgeUrl = process.env.NEXT_PUBLIC_INSFORGE_URL;
 const insforgeAnonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
@@ -17,11 +17,8 @@ const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   return fetch(url, newOptions as any);
 };
 
-export const insforge = createClient({ 
-  baseUrl: insforgeUrl, 
-  anonKey: insforgeAnonKey,
-  functionsUrl,
-  fetch: customFetch
+export const insforge = createClient(insforgeUrl, insforgeAnonKey, { 
+  global: { fetch: customFetch }
 });
 
 // Monkey-patch invoke to force Authorization header (since functionsUrl domain differs from baseUrl)
