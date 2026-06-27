@@ -7,17 +7,30 @@ export async function GET(req: Request) {
   try {
     let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
-    
-    // If the URL is missing the port or is unreachable from inside Docker, use the direct IP fallback
-    if (supabaseUrl === "https://apitehmaestro.jagoankasir.store") {
-      supabaseUrl = "http://supabasekong-evbv7dpfdcuglrfem0rh5pnh.103.63.25.248.sslip.io";
-    }
+
+    const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
+      let fetchUrl = url.toString();
+      const fetchOptions = options || {};
+      fetchOptions.headers = new Headers(fetchOptions.headers || {});
+      
+      // If the URL is our external domain, rewrite to the direct VPS IP and force the Host header
+      // This bypasses Docker DNS resolution issues (ENOTFOUND) while still allowing Traefik to route properly
+      if (fetchUrl.includes("apitehmaestro.jagoankasir.store")) {
+        fetchUrl = fetchUrl.replace("https://apitehmaestro.jagoankasir.store", "http://103.63.25.248");
+        (fetchOptions.headers as Headers).set("Host", "apitehmaestro.jagoankasir.store");
+      }
+      
+      return fetch(fetchUrl, fetchOptions);
+    };
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ error: "Missing Supabase URL or Service Key" }, { status: 500 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { 
+      auth: { persistSession: false },
+      global: { fetch: customFetch }
+    });
 
     // 1. Get all users from Auth
     const { data: authData, error: authError } = await supabase.auth.admin.listUsers();

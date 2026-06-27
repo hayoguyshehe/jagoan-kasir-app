@@ -19,11 +19,23 @@ export async function POST(req: NextRequest) {
     let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
 
-    if (supabaseUrl === "https://apitehmaestro.jagoankasir.store") {
-      supabaseUrl = "http://supabasekong-evbv7dpfdcuglrfem0rh5pnh.103.63.25.248.sslip.io";
-    }
+    const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
+      let fetchUrl = url.toString();
+      const fetchOptions = options || {};
+      fetchOptions.headers = new Headers(fetchOptions.headers || {});
+      
+      if (fetchUrl.includes("apitehmaestro.jagoankasir.store")) {
+        fetchUrl = fetchUrl.replace("https://apitehmaestro.jagoankasir.store", "http://103.63.25.248");
+        (fetchOptions.headers as Headers).set("Host", "apitehmaestro.jagoankasir.store");
+      }
+      
+      return fetch(fetchUrl, fetchOptions);
+    };
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { 
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: customFetch }
+    });
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
