@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@supabase/sdk";
 
 // Define the shape of our incoming request
 interface TransactionRequest {
@@ -31,16 +31,16 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     // We use the service role key to perform DB updates bypass RLS, 
     // but we can also use the auth header to verify the user.
     // In this edge function, we will bypass RLS since it's a complex transaction that updates multiple tables.
-    const insforge = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
 
     // Verify user token just to be secure
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         status: 401, 
@@ -56,7 +56,7 @@ export default async function (req: Request) {
 
     // IDEMPOTENCY CHECK
     if (id) {
-      const { data: existingTxn } = await insforge
+      const { data: existingTxn } = await supabase
         .from('transactions')
         .select('id')
         .eq('id', id)
@@ -74,7 +74,7 @@ export default async function (req: Request) {
     // Begin a 'pseudo' transaction
     // 1. Fetch all product details for validation and calculating total
     const productIds = items.map(i => i.productId);
-    const { data: products, error: productsError } = await insforge
+    const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, name, price, stock')
       .in('id', productIds);
@@ -112,7 +112,7 @@ export default async function (req: Request) {
     }
 
     // 2. Auto-Deduct BOM
-    const { data: recipes, error: recipesError } = await insforge
+    const { data: recipes, error: recipesError } = await supabase
       .from('product_recipes')
       .select('product_id, material_id, quantity, serve_type')
       .in('product_id', productIds);
@@ -122,7 +122,7 @@ export default async function (req: Request) {
     if (recipes && recipes.length > 0) {
       // Fetch material stocks
       const materialIds = [...new Set(recipes.map(r => r.material_id))];
-      const { data: materials, error: materialsError } = await insforge
+      const { data: materials, error: materialsError } = await supabase
         .from('products')
         .select('id, stock')
         .in('id', materialIds);
@@ -159,7 +159,7 @@ export default async function (req: Request) {
     let appliedVoucherCode = voucherCode || null;
 
     if (voucherCode) {
-      const { data: voucher, error: voucherError } = await insforge
+      const { data: voucher, error: voucherError } = await supabase
         .from('vouchers')
         .select('*')
         .eq('code', voucherCode)
@@ -205,7 +205,7 @@ export default async function (req: Request) {
       transactionPayload.id = id;
     }
 
-    const { data: transaction, error: txnError } = await insforge
+    const { data: transaction, error: txnError } = await supabase
       .from('transactions')
       .insert(transactionPayload)
       .select()
@@ -219,7 +219,7 @@ export default async function (req: Request) {
       transaction_id: transaction.id
     }));
 
-    const { error: itemsError } = await insforge
+    const { error: itemsError } = await supabase
       .from('transaction_items')
       .insert(finalItems);
 
@@ -227,7 +227,7 @@ export default async function (req: Request) {
 
     // 6. Update Stocks individually to avoid upsert NOT NULL constraint errors
     const updatePromises = stockUpdates.map(update => 
-      insforge.from('products').update({ stock: update.stock }).eq('id', update.id)
+      supabase.from('products').update({ stock: update.stock }).eq('id', update.id)
     );
     const updateResults = await Promise.all(updatePromises);
     

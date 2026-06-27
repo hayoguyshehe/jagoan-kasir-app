@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-    const insforge = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
     // Verify user token
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch transaction details
-    const { data: transaction, error: txnError } = await insforge
+    const { data: transaction, error: txnError } = await supabase
       .from('transactions')
       .select('*, transaction_items(*)')
       .eq('id', transactionId)
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const isPastGracePeriod = diffMinutes > 5;
 
     // Verify PIN against users
-    const { data: pinUsers, error: pinError } = await insforge
+    const { data: pinUsers, error: pinError } = await supabase
       .from('users')
       .select('id, role, pin, outlet_id')
       .eq('pin', pin)
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Fetch current stocks of the products in the transaction
     const productIds = transaction.transaction_items.map((item: any) => item.product_id);
-    const { data: products, error: productsError } = await insforge
+    const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, stock')
       .in('id', productIds);
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Reverse BOM
-    const { data: recipes, error: recipesError } = await insforge
+    const { data: recipes, error: recipesError } = await supabase
       .from('product_recipes')
       .select('product_id, material_id, quantity, serve_type')
       .in('product_id', productIds);
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
 
     if (recipes && recipes.length > 0) {
       const materialIds = [...new Set(recipes.map((r: any) => r.material_id))];
-      const { data: materials, error: materialsError } = await insforge
+      const { data: materials, error: materialsError } = await supabase
         .from('products')
         .select('id, stock')
         .in('id', materialIds);
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
     // Execute updates individually to avoid NOT NULL constraint errors
     if (stockUpdates.length > 0) {
       for (const update of stockUpdates) {
-        const { error: updateError } = await insforge
+        const { error: updateError } = await supabase
           .from('products')
           .update({ stock: update.stock })
           .eq('id', update.id);
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update transaction to VOIDED
-    const { data: updatedTxn, error: updateTxnError } = await insforge
+    const { data: updatedTxn, error: updateTxnError } = await supabase
       .from('transactions')
       .update({
         status: 'VOIDED',

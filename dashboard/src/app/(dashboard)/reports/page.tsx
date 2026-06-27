@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useOutletContext } from "@/context/outlet-context";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { downloadCSV } from "@/lib/export";
 import {
   Card,
@@ -105,7 +105,7 @@ export default function ReportsPage() {
       }
 
       // @ts-ignore - rpc exists on SupabaseClient but might be missing in InsForgeClient wrapper types
-      const { data, error } = await insforge.rpc("get_sales_report", {
+      const { data, error } = await supabase.rpc("get_sales_report", {
         p_outlet_id: selectedOutletId,
         p_start_date: start_date.toISOString(),
         p_end_date: end_date.toISOString()

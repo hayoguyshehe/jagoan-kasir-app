@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Fragment } from "react";
 import { XCircle, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async () => {
     setLoading(true);
-    const { data, error } = await insforge
+    const { data, error } = await supabase
       .from("transactions")
       .select("*, staff:users!transactions_staff_id_fkey(email), cycle:business_cycles(status), transaction_items(*)")
       .order("created_at", { ascending: false })
@@ -64,7 +64,7 @@ export default function TransactionsPage() {
     if (!selectedTxnId || !voidPin || !voidReason) return;
 
     try {
-      const response = await insforge.functions.invoke("void-transaction", {
+      const response = await supabase.functions.invoke("void-transaction", {
         body: {
           transactionId: selectedTxnId,
           pin: voidPin,

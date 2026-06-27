@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RefreshCcw, XCircle, ChevronDown, ChevronUp, Printer } from 'lucide-react';
 import { printReceipt } from '../lib/printer';
-import { insforge } from '../lib/insforge';
+import { supabase } from '../lib/supabase';
 
 export default function History() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -14,10 +14,10 @@ export default function History() {
 
   const fetchHistory = async () => {
     setLoading(true);
-    const { data: userData } = await insforge.auth.getCurrentUser();
+    const { data: userData } = await supabase.auth.getUser();
     
     if (userData.user) {
-      const { data } = await insforge
+      const { data } = await supabase
         .from('transactions')
         .select('*, transaction_items(*)')
         .eq('staff_id', userData.user.id)
@@ -37,7 +37,7 @@ export default function History() {
     if (!reason) return;
 
     try {
-      const response = await insforge.functions.invoke('void-transaction', {
+      const response = await supabase.functions.invoke('void-transaction', {
         body: {
           transactionId: txnId,
           pin,

@@ -11,7 +11,7 @@ export function middleware(req: NextRequest) {
                            
   // The SDK stores session in this cookie name natively when using auth helpers
   // Since we are using standard supabase-js, we need to check how it saves the token
-  const hasToken = req.cookies.has('insforge-auth-token') || req.cookies.has('sb-auth-token') || req.cookies.has('sb-access-token');
+  const hasToken = req.cookies.has('supabase-auth-token') || req.cookies.has('sb-auth-token') || req.cookies.has('sb-access-token');
 
   // Basic protection: if accessing dashboard root or routes other than /login, require token
   if (isProtectedRoute) {

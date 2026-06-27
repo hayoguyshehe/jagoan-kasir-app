@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, LogOut, User } from "lucide-react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ export function Topbar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   
   useEffect(() => {
-    insforge.auth.getCurrentUser().then(({ data }) => {
+    supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUserEmail(data.user.email || null);
       }
@@ -30,8 +30,8 @@ export function Topbar() {
   }, []);
 
   const handleLogout = async () => {
-    await insforge.auth.signOut();
-    document.cookie = 'insforge-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    await supabase.auth.signOut();
+    document.cookie = 'supabase-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     router.push("/login");
   };
 

@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-    const insforge = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     const productIds = adjustments.map(a => a.productId);
-    const { data: products, error: productsError } = await insforge
+    const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, stock')
       .in('id', productIds)
@@ -80,13 +80,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { error: logsError } = await insforge
+    const { error: logsError } = await supabase
       .from('stock_adjustment_logs')
       .insert(logsToInsert);
 
     if (logsError) throw logsError;
 
-    const { error: updateError } = await insforge
+    const { error: updateError } = await supabase
       .from('products')
       .upsert(stockUpdates);
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { insforge } from './lib/insforge';
+import { supabase } from './lib/supabase';
 import Login from './pages/Login';
 import POS from './pages/POS';
 import History from './pages/History';
@@ -15,7 +15,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    insforge.auth.getCurrentUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
       setSession(user);
       setLoading(false);
     });
@@ -54,7 +54,7 @@ export default function App() {
           <Route path="settings" element={
             <div className="p-4">
               <button 
-                onClick={() => insforge.auth.signOut()}
+                onClick={() => supabase.auth.signOut()}
                 className="rounded bg-red-500 px-4 py-2 text-white font-bold"
               >
                 Logout

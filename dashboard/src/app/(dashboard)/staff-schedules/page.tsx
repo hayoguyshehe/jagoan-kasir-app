@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
@@ -64,7 +64,7 @@ export default function StaffSchedulesPage() {
     setLoading(true);
 
     // Fetch all staff users (role = STAFF)
-    const { data: staffData } = await insforge
+    const { data: staffData } = await supabase
       .from("users")
       .select("id, email")
       .eq("role", "STAFF");
@@ -75,7 +75,7 @@ export default function StaffSchedulesPage() {
     const startDate = new Date(selectedYear, selectedMonth, 1).toISOString().split("T")[0];
     const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString().split("T")[0];
 
-    const { data: schedData } = await insforge
+    const { data: schedData } = await supabase
       .from("staff_schedules")
       .select("*, user:users(email)")
       .eq("outlet_id", selectedOutletId)
@@ -110,7 +110,7 @@ export default function StaffSchedulesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Hapus jadwal ini?")) return;
-    const { error } = await insforge.from("staff_schedules").delete().eq("id", id);
+    const { error } = await supabase.from("staff_schedules").delete().eq("id", id);
     if (!error) fetchData();
   };
 
@@ -130,7 +130,7 @@ export default function StaffSchedulesPage() {
     };
 
     if (editingScheduleId) {
-      const { error } = await insforge
+      const { error } = await supabase
         .from("staff_schedules")
         .update(payload)
         .eq("id", editingScheduleId);
@@ -140,7 +140,7 @@ export default function StaffSchedulesPage() {
         return;
       }
     } else {
-      const { error } = await insforge
+      const { error } = await supabase
         .from("staff_schedules")
         .insert(payload);
 

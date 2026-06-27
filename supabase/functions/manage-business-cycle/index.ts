@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@supabase/sdk";
 
 interface CycleRequest {
   action: 'clock_in' | 'clock_out' | 'close_store';
@@ -23,12 +23,12 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const insforge = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
 
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         status: 401, 
@@ -45,7 +45,7 @@ export default async function (req: Request) {
     if (action === 'clock_in') {
       // 1. Check if there's an ACTIVE cycle for this outlet
       let activeCycleId;
-      const { data: existingCycle, error: checkError } = await insforge
+      const { data: existingCycle, error: checkError } = await supabase
         .from('business_cycles')
         .select('id')
         .eq('outlet_id', outletId)
@@ -56,7 +56,7 @@ export default async function (req: Request) {
 
       if (!existingCycle) {
         // Create new cycle (Open Store)
-        const { data: newCycle, error: createError } = await insforge
+        const { data: newCycle, error: createError } = await supabase
           .from('business_cycles')
           .insert({
             outlet_id: outletId,
@@ -75,7 +75,7 @@ export default async function (req: Request) {
 
       // 2. Clock in the user
       // Check if already clocked in
-      const { data: existingLog } = await insforge
+      const { data: existingLog } = await supabase
         .from('attendance_logs')
         .select('id')
         .eq('user_id', userId)
@@ -87,7 +87,7 @@ export default async function (req: Request) {
         throw new Error("User is already clocked in for this cycle.");
       }
 
-      const { data: attData, error: attError } = await insforge
+      const { data: attData, error: attError } = await supabase
         .from('attendance_logs')
         .insert({
           cycle_id: activeCycleId,
@@ -109,7 +109,7 @@ export default async function (req: Request) {
 
     } else if (action === 'clock_out') {
       // Find active attendance log
-      const { data: activeLog, error: logError } = await insforge
+      const { data: activeLog, error: logError } = await supabase
         .from('attendance_logs')
         .select('id, cycle_id')
         .eq('user_id', userId)
@@ -121,7 +121,7 @@ export default async function (req: Request) {
       if (!activeLog) throw new Error("No active clock-in found for this user.");
 
       // Update clock out
-      const { data: outData, error: outError } = await insforge
+      const { data: outData, error: outError } = await supabase
         .from('attendance_logs')
         .update({
           clock_out_at: new Date().toISOString()
@@ -141,7 +141,7 @@ export default async function (req: Request) {
       if (!cycleId) throw new Error("cycleId is required to close store");
 
       // 1. Close cycle
-      const { data: cycle, error: cycleError } = await insforge
+      const { data: cycle, error: cycleError } = await supabase
         .from('business_cycles')
         .update({
           closed_at: new Date().toISOString(),
@@ -156,7 +156,7 @@ export default async function (req: Request) {
       if (cycleError) throw cycleError;
 
       // 2. Force clock out staff who forgot
-      const { error: attError } = await insforge
+      const { error: attError } = await supabase
         .from('attendance_logs')
         .update({
           clock_out_at: new Date().toISOString(),
@@ -168,7 +168,7 @@ export default async function (req: Request) {
       if (attError) throw attError;
 
       // 3. Mark ALPA for staff who didn't clock in at all
-      const { data: activeStaff } = await insforge
+      const { data: activeStaff } = await supabase
         .from('users')
         .select('id')
         .eq('outlet_id', outletId)
@@ -176,7 +176,7 @@ export default async function (req: Request) {
         .eq('is_active', true);
 
       if (activeStaff && activeStaff.length > 0) {
-        const { data: clockedInStaff } = await insforge
+        const { data: clockedInStaff } = await supabase
           .from('attendance_logs')
           .select('user_id')
           .eq('cycle_id', cycleId);
@@ -192,7 +192,7 @@ export default async function (req: Request) {
             status: 'ALPA'
           }));
 
-          const { error: alpaError } = await insforge
+          const { error: alpaError } = await supabase
             .from('attendance_logs')
             .insert(alpaRecords);
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { insforge } from '../lib/insforge';
+import { supabase } from '../lib/supabase';
 import { getContrastColor } from '../lib/utils';
 
 export default function Login() {
@@ -24,7 +24,7 @@ export default function Login() {
       const normalizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
       const loginEmail = `${normalizedName}@${brandSlug}`;
 
-      const { data, error: authError } = await insforge.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: pin,
       });
@@ -33,7 +33,7 @@ export default function Login() {
       if (!data || !data.user) throw new Error('User not found');
 
       // Verify user is active staff
-      const { data: userData, error: userError } = await insforge
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role, is_active, outlet_id')
         .eq('id', data.user?.id)
@@ -42,7 +42,7 @@ export default function Login() {
       if (userError) throw userError;
 
       if (!userData.is_active) {
-        await insforge.auth.signOut();
+        await supabase.auth.signOut();
         throw new Error('Your account is inactive. Please contact your manager.');
       }
 
@@ -54,7 +54,7 @@ export default function Login() {
         localStorage.setItem('outlet_device_id', deviceId);
         
         // Log to security_logs (unrecognized device)
-        await insforge.from('security_logs').insert({
+        await supabase.from('security_logs').insert({
           outlet_id: userData.outlet_id || null,
           staff_id: data.user.id,
           attempted_name: name,
@@ -64,7 +64,7 @@ export default function Login() {
       }
 
       if (userData?.role === 'OWNER') {
-        await insforge.auth.signOut();
+        await supabase.auth.signOut();
         throw new Error('Owner should use dashboard.');
       }
 

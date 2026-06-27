@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@supabase/sdk";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,22 +13,22 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     // We use the service_role key to bypass RLS and be able to create auth users
-    const insforge = createAdminClient({
+    const supabase = createAdminClient({
       baseUrl: supabaseUrl,
       apiKey: supabaseServiceKey
     });
 
     // Verify caller is an Admin/Owner
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       throw new Error("Unauthorized");
     }
 
-    const { data: callerUser } = await insforge.from("users").select("role, outlet_id").eq("id", user.id).single();
+    const { data: callerUser } = await supabase.from("users").select("role, outlet_id").eq("id", user.id).single();
     if (!callerUser || !['OWNER', 'ADMIN'].includes(callerUser.role)) {
       throw new Error("Forbidden: Only Admin/Owner can manage users.");
     }
@@ -43,7 +43,7 @@ export default async function (req: Request) {
       const uniqueSuffix = Math.floor(Math.random() * 10000);
       const email = `${normalizedName}${uniqueSuffix}@${brandSlug}`;
 
-      const { data: authData, error: createAuthError } = await insforge.auth.admin.createUser({
+      const { data: authData, error: createAuthError } = await supabase.auth.admin.createUser({
         email,
         password: pin, // Must be at least 6 chars
         email_confirm: true
@@ -54,7 +54,7 @@ export default async function (req: Request) {
       const targetOutletId = role === 'OWNER' ? null : (outletId || callerUser.outlet_id);
 
       // 2. Insert into users table
-      const { data: dbUser, error: dbError } = await insforge.from("users").insert({
+      const { data: dbUser, error: dbError } = await supabase.from("users").insert({
         id: authData.user.id,
         name: name,
         email: email,
@@ -76,21 +76,21 @@ export default async function (req: Request) {
 
       // Check if caller can modify this staff
       if (callerUser.role === 'ADMIN') {
-        const { data: targetStaff } = await insforge.from("users").select("outlet_id").eq("id", staffId).single();
+        const { data: targetStaff } = await supabase.from("users").select("outlet_id").eq("id", staffId).single();
         if (targetStaff?.outlet_id !== callerUser.outlet_id) {
           throw new Error("Forbidden: Cannot modify staff from another outlet.");
         }
       }
 
       // 1. Update Auth password
-      const { error: updateAuthError } = await insforge.auth.admin.updateUserById(staffId, {
+      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(staffId, {
         password: pin
       });
 
       if (updateAuthError) throw updateAuthError;
 
       // 2. Update DB pin
-      const { error: dbError } = await insforge.from("users").update({ pin }).eq("id", staffId);
+      const { error: dbError } = await supabase.from("users").update({ pin }).eq("id", staffId);
       if (dbError) throw dbError;
 
       return new Response(JSON.stringify({ success: true }), {

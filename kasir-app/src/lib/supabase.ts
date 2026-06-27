@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_INSFORGE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_INSFORGE_ANON_KEY || 'placeholder';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder';
 
-if (!import.meta.env.VITE_INSFORGE_URL && typeof window !== 'undefined') {
-  console.error("Missing VITE_INSFORGE_URL in environment variables");
+if (!import.meta.env.VITE_SUPABASE_URL && typeof window !== 'undefined') {
+  console.error("Missing VITE_SUPABASE_URL in environment variables");
 }
 
 // Use Dasbor Next.js API routes for edge functions
@@ -17,12 +17,12 @@ const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   return fetch(url, newOptions as any);
 };
 
-export const insforge = createClient(supabaseUrl, supabaseAnonKey, { 
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, { 
   global: { fetch: customFetch }
 });
 
 // Monkey-patch invoke to point to Next.js API routes since Supabase JS doesn't natively support functionsUrl redirect
-insforge.functions.invoke = async (functionName: string, options: any = {}) => {
+supabase.functions.invoke = async (functionName: string, options: any = {}) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers || {})
@@ -30,7 +30,7 @@ insforge.functions.invoke = async (functionName: string, options: any = {}) => {
 
   if (!headers.Authorization) {
     // Supabase v2 JS auth session
-    const { data: { session } } = await insforge.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       headers.Authorization = `Bearer ${session.access_token}`;
     }

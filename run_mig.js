@@ -9,7 +9,7 @@ const queries = [
 
 queries.forEach(q => {
   try {
-    console.log(execSync('npx @insforge/cli db query ' + JSON.stringify(q)).toString());
+    console.log(execSync('npx @supabase/cli db query ' + JSON.stringify(q)).toString());
   } catch(e) {
     console.error(e.stderr.toString());
   }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { getContrastColor } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { data, error: authError } = await insforge.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -35,7 +35,7 @@ export default function LoginPage() {
       if (!data || !data.user) throw new Error("User not found");
 
       // Ensure the user has the correct role (Admin or Owner)
-      const { data: userData, error: userError } = await insforge
+      const { data: userData, error: userError } = await supabase
         .from("users")
         .select("role")
         .eq("id", data.user.id)
@@ -44,15 +44,15 @@ export default function LoginPage() {
       if (userError) throw userError;
 
       if (userData.role !== "ADMIN" && userData.role !== "OWNER") {
-        await insforge.auth.signOut();
+        await supabase.auth.signOut();
         throw new Error("You do not have permission to access the dashboard.");
       }
 
       // Success
-      // The session is set automatically by @insforge/sdk
+      // The session is set automatically by @supabase/sdk
       // However, for Next.js App Router middleware to see it, we need to set the cookie.
       // @ts-ignore
-      document.cookie = `insforge-auth-token=${data.session?.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; secure; samesite=strict`;
+      document.cookie = `supabase-auth-token=${data.session?.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; secure; samesite=strict`;
 
       router.push("/");
       router.refresh();

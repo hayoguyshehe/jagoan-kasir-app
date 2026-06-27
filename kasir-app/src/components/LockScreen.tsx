@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { insforge } from '../lib/insforge';
+import { supabase } from '../lib/supabase';
 import { Lock } from 'lucide-react';
 
 import { getContrastColor } from '../lib/utils';
@@ -43,11 +43,11 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
     setError('');
 
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) throw new Error("Not logged in");
 
       // Verify PIN against the currently logged in user
-      const { data: userRow, error: dbError } = await insforge
+      const { data: userRow, error: dbError } = await supabase
         .from('users')
         .select('pin')
         .eq('id', userData.user.id)

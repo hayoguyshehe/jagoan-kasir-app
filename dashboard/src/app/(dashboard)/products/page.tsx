@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
@@ -48,7 +48,7 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     if (!selectedOutletId) return;
     setLoading(true);
-    const { data, error } = await insforge
+    const { data, error } = await supabase
       .from("products")
       .select("*")
       .eq("outlet_id", selectedOutletId)
@@ -89,7 +89,7 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus produk ini?")) return;
-    const { error } = await insforge.from("products").delete().eq("id", id);
+    const { error } = await supabase.from("products").delete().eq("id", id);
     if (!error) fetchProducts();
   };
 
@@ -107,7 +107,7 @@ export default function ProductsPage() {
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `products/${selectedOutletId}/${fileName}`;
 
-      const { data: uploadData, error: uploadError } = await insforge.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('foto')
         .upload(filePath, imageFile);
 
@@ -117,7 +117,7 @@ export default function ProductsPage() {
         return;
       }
 
-      const { data: publicUrlData } = insforge.storage.from('foto').getPublicUrl(filePath);
+      const { data: publicUrlData } = supabase.storage.from('foto').getPublicUrl(filePath);
       finalImageUrl = publicUrlData?.publicUrl || '';
     }
 
@@ -134,7 +134,7 @@ export default function ProductsPage() {
     };
 
     if (editingId) {
-      const { error } = await insforge
+      const { error } = await supabase
         .from("products")
         .update(payload)
         .eq("id", editingId);
@@ -144,7 +144,7 @@ export default function ProductsPage() {
         return;
       }
     } else {
-      const { error } = await insforge
+      const { error } = await supabase
         .from("products")
         .insert(payload);
       if (error) {

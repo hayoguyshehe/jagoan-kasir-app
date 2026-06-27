@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ShoppingCart, DollarSign, Package, Users, AlertTriangle } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
@@ -21,10 +21,10 @@ export default function DashboardHome() {
     async function fetchStats() {
       try {
         const [txnRes, revRes, prodRes, staffRes] = await Promise.all([
-          insforge.from("transactions").select("id", { count: "exact" }),
-          insforge.from("transactions").select("total_amount, created_at").eq("status", "COMPLETED"),
-          insforge.from("products").select("*"),
-          insforge.from("users").select("id", { count: "exact" }).eq("role", "STAFF").eq("is_active", true)
+          supabase.from("transactions").select("id", { count: "exact" }),
+          supabase.from("transactions").select("total_amount, created_at").eq("status", "COMPLETED"),
+          supabase.from("products").select("*"),
+          supabase.from("users").select("id", { count: "exact" }).eq("role", "STAFF").eq("is_active", true)
         ]);
 
         const totalRevenue = revRes.data?.reduce((acc, curr) => acc + (curr.total_amount || 0), 0) || 0;

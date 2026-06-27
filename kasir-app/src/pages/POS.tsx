@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useEffect, useState, useRef } from 'react';
 import { ShoppingCart, Plus, Minus, Search, SlidersHorizontal, Heart, X, Check, Percent, DollarSign, Printer, Share2, MessageCircle, Flame, Snowflake, Wifi, WifiOff } from 'lucide-react';
-import { insforge } from '../lib/insforge';
+import { supabase } from '../lib/supabase';
 import { useCartStore } from '../store/useCartStore';
 import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -282,7 +282,7 @@ function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm,
                   setVoucherError('');
                   setIsCheckingVoucher(true);
                   try {
-                    const { data: voucher, error } = await insforge
+                    const { data: voucher, error } = await supabase
                       .from('vouchers')
                       .select('*')
                       .eq('code', voucherInput.trim().toUpperCase())
@@ -510,12 +510,12 @@ export default function POS() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return;
       
       setStaffEmail(userData.user.email || '');
 
-      const { data: userRecord } = await insforge
+      const { data: userRecord } = await supabase
         .from("users")
         .select("outlet_id")
         .eq("id", userData.user.id)
@@ -525,7 +525,7 @@ export default function POS() {
         setOutletId(userRecord.outlet_id);
         
         // Fetch outlet info for receipt
-        const { data: outlet } = await insforge
+        const { data: outlet } = await supabase
           .from('outlets')
           .select('name, address, phone')
           .eq('id', userRecord.outlet_id)
@@ -535,7 +535,7 @@ export default function POS() {
 
       // Fetch MENUs and ADDONs from server if online
       if (navigator.onLine) {
-        const { data } = await insforge
+        const { data } = await supabase
           .from('products')
           .select('*')
           .in('type', ['MENU', 'ADDON'])
@@ -586,7 +586,7 @@ export default function POS() {
     if (cartItems.length === 0 || !outletId) return;
 
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData } = await supabase.auth.getUser();
       const transactionId = uuidv4();
       const payload = {
         id: transactionId,
@@ -608,7 +608,7 @@ export default function POS() {
       if (navigator.onLine) {
         // Try to process online
         try {
-          const response = await insforge.functions.invoke('process-transaction', {
+          const response = await supabase.functions.invoke('process-transaction', {
             body: payload
           });
           if (response.error) throw response.error;

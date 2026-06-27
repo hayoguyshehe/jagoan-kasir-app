@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-    const insforge = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     if (action === 'clock_in') {
       let activeCycleId;
-      const { data: existingCycle, error: checkError } = await insforge
+      const { data: existingCycle, error: checkError } = await supabase
         .from('business_cycles')
         .select('id')
         .eq('outlet_id', outletId)
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       if (checkError) throw checkError;
 
       if (!existingCycle) {
-        const { data: newCycle, error: createError } = await insforge
+        const { data: newCycle, error: createError } = await supabase
           .from('business_cycles')
           .insert({
             outlet_id: outletId,
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         activeCycleId = existingCycle.id;
       }
 
-      const { data: existingLog } = await insforge
+      const { data: existingLog } = await supabase
         .from('attendance_logs')
         .select('id')
         .eq('user_id', userId)
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
         throw new Error("User is already clocked in for this cycle.");
       }
 
-      const { data: attData, error: attError } = await insforge
+      const { data: attData, error: attError } = await supabase
         .from('attendance_logs')
         .insert({
           cycle_id: activeCycleId,
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, cycle_id: activeCycleId, attendance: attData }, { status: 200, headers: corsHeaders });
 
     } else if (action === 'clock_out') {
-      const { data: activeLog, error: logError } = await insforge
+      const { data: activeLog, error: logError } = await supabase
         .from('attendance_logs')
         .select('id, cycle_id')
         .eq('user_id', userId)
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       if (logError) throw logError;
       if (!activeLog) throw new Error("No active clock-in found for this user.");
 
-      const { data: outData, error: outError } = await insforge
+      const { data: outData, error: outError } = await supabase
         .from('attendance_logs')
         .update({
           clock_out_at: new Date().toISOString()
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     } else if (action === 'close_store') {
       if (!cycleId) throw new Error("cycleId is required to close store");
 
-      const { data: cycle, error: cycleError } = await insforge
+      const { data: cycle, error: cycleError } = await supabase
         .from('business_cycles')
         .update({
           closed_at: new Date().toISOString(),
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
 
       if (cycleError) throw cycleError;
 
-      const { error: attError } = await insforge
+      const { error: attError } = await supabase
         .from('attendance_logs')
         .update({
           clock_out_at: new Date().toISOString(),
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
 
       if (attError) throw attError;
 
-      const { data: activeStaff } = await insforge
+      const { data: activeStaff } = await supabase
         .from('users')
         .select('id')
         .eq('outlet_id', outletId)
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
         .eq('is_active', true);
 
       if (activeStaff && activeStaff.length > 0) {
-        const { data: clockedInStaff } = await insforge
+        const { data: clockedInStaff } = await supabase
           .from('attendance_logs')
           .select('user_id')
           .eq('cycle_id', cycleId);
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
             status: 'ALPA'
           }));
 
-          const { error: alpaError } = await insforge
+          const { error: alpaError } = await supabase
             .from('attendance_logs')
             .insert(alpaRecords);
 

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@supabase/sdk";
 
 interface OpnameRequest {
   outletId: string;
@@ -24,12 +24,12 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const insforge = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
 
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         status: 401, 
@@ -45,7 +45,7 @@ export default async function (req: Request) {
 
     // 1. Fetch current stock for validation and calculating old_stock
     const productIds = adjustments.map(a => a.productId);
-    const { data: products, error: productsError } = await insforge
+    const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, stock')
       .in('id', productIds)
@@ -81,14 +81,14 @@ export default async function (req: Request) {
     }
 
     // 2. Insert Logs
-    const { error: logsError } = await insforge
+    const { error: logsError } = await supabase
       .from('stock_adjustment_logs')
       .insert(logsToInsert);
 
     if (logsError) throw logsError;
 
     // 3. Update Stocks
-    const { error: updateError } = await insforge
+    const { error: updateError } = await supabase
       .from('products')
       .upsert(stockUpdates);
 

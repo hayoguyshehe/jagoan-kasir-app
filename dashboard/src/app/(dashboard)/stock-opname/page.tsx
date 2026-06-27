@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ListPlus } from "lucide-react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
@@ -46,13 +46,13 @@ export default function StockOpnamePage() {
     if (!selectedOutletId) return;
     setLoading(true);
     
-    const { data: logsData } = await insforge
+    const { data: logsData } = await supabase
       .from("stock_adjustment_logs")
       .select("*, product:products(name), user:users(email)")
       .eq("outlet_id", selectedOutletId)
       .order("created_at", { ascending: false });
       
-    const { data: productsData } = await insforge
+    const { data: productsData } = await supabase
       .from("products")
       .select("*")
       .eq("outlet_id", selectedOutletId)
@@ -80,7 +80,7 @@ export default function StockOpnamePage() {
       const parsedNewStock = parseInt(newStock);
 
       // 1. Insert to stock_adjustment_logs
-      const { error: logError } = await insforge
+      const { error: logError } = await supabase
         .from("stock_adjustment_logs")
         .insert({
           product_id: selectedProductId,
@@ -95,7 +95,7 @@ export default function StockOpnamePage() {
       if (logError) throw logError;
 
       // 2. Update stock in products table
-      const { error: updateError } = await insforge
+      const { error: updateError } = await supabase
         .from("products")
         .update({ stock: parsedNewStock })
         .eq("id", selectedProductId);

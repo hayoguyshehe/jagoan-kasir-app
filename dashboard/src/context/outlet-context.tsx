@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 
 type Outlet = {
   id: string;
@@ -38,13 +38,13 @@ export function OutletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function init() {
       try {
-        const { data: authData } = await insforge.auth.getCurrentUser();
+        const { data: authData } = await supabase.auth.getUser();
         if (!authData?.user) return;
 
         setUserId(authData.user.id);
 
         // Fetch user's role and outlet
-        const { data: userRecord } = await insforge
+        const { data: userRecord } = await supabase
           .from("users")
           .select("role, outlet_id")
           .eq("id", authData.user.id)
@@ -55,7 +55,7 @@ export function OutletProvider({ children }: { children: ReactNode }) {
         setUserRole(userRecord.role);
 
         // Fetch outlets
-        const { data: outletData } = await insforge
+        const { data: outletData } = await supabase
           .from("outlets")
           .select("id, name, address, phone")
           .order("name");

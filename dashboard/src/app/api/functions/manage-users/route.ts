@@ -19,14 +19,14 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-    const insforge = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
 
-    const { data: callerUser } = await insforge.from("users").select("role, outlet_id").eq("id", user.id).single();
+    const { data: callerUser } = await supabase.from("users").select("role, outlet_id").eq("id", user.id).single();
     if (!callerUser || !['OWNER', 'ADMIN'].includes(callerUser.role)) {
       throw new Error("Forbidden: Only Admin/Owner can manage users.");
     }
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       const uniqueSuffix = Math.floor(Math.random() * 10000);
       const email = `${normalizedName}${uniqueSuffix}@${brandSlug}`;
 
-      const { data: authData, error: createAuthError } = await insforge.auth.admin.createUser({
+      const { data: authData, error: createAuthError } = await supabase.auth.admin.createUser({
         email,
         password: pin,
         email_confirm: true
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
       const targetOutletId = role === 'OWNER' ? null : (outletId || callerUser.outlet_id);
 
-      const { data: dbUser, error: dbError } = await insforge.from("users").insert({
+      const { data: dbUser, error: dbError } = await supabase.from("users").insert({
         id: authData.user.id,
         name: name,
         email: email,
@@ -69,19 +69,19 @@ export async function POST(req: NextRequest) {
       if (!staffId || !pin) throw new Error("Missing staffId or pin");
 
       if (callerUser.role === 'ADMIN') {
-        const { data: targetStaff } = await insforge.from("users").select("outlet_id").eq("id", staffId).single();
+        const { data: targetStaff } = await supabase.from("users").select("outlet_id").eq("id", staffId).single();
         if (targetStaff?.outlet_id !== callerUser.outlet_id) {
           throw new Error("Forbidden: Cannot modify staff from another outlet.");
         }
       }
 
-      const { error: updateAuthError } = await insforge.auth.admin.updateUserById(staffId, {
+      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(staffId, {
         password: pin
       });
 
       if (updateAuthError) throw updateAuthError;
 
-      const { error: dbError } = await insforge.from("users").update({ pin }).eq("id", staffId);
+      const { error: dbError } = await supabase.from("users").update({ pin }).eq("id", staffId);
       if (dbError) throw dbError;
 
       return NextResponse.json({ success: true }, { headers: corsHeaders });

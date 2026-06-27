@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Camera, Play, Square, Clock } from 'lucide-react';
-import { insforge } from '../lib/insforge';
+import { supabase } from '../lib/supabase';
 import { getContrastColor } from '../lib/utils';
 
 export default function Shift() {
@@ -21,11 +21,11 @@ export default function Shift() {
 
   const fetchAttendanceStatus = async () => {
     setLoading(true);
-    const { data: userData } = await insforge.auth.getCurrentUser();
+    const { data: userData } = await supabase.auth.getUser();
     
     if (userData.user) {
       // Find active attendance log for this user
-      const { data } = await insforge
+      const { data } = await supabase
         .from('attendance_logs')
         .select('*')
         .eq('user_id', userData.user.id)
@@ -77,8 +77,8 @@ export default function Shift() {
     }
 
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
-      const { data: userRecord } = await insforge.from("users").select("outlet_id").eq("id", userData.user?.id).single();
+      const { data: userData } = await supabase.auth.getUser();
+      const { data: userRecord } = await supabase.from("users").select("outlet_id").eq("id", userData.user?.id).single();
 
       // Convert Base64 to Blob
       const fetchResponse = await fetch(photoUrl);
@@ -87,20 +87,20 @@ export default function Shift() {
       const fileName = `attendance/${userData.user?.id}_${Date.now()}.jpg`;
       
       // Upload to InsForge storage bucket named 'foto'
-      const { error: uploadError } = await insforge.storage
+      const { error: uploadError } = await supabase.storage
         .from('foto')
         .upload(fileName, blob);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: publicUrlData } = insforge.storage
+      const { data: publicUrlData } = supabase.storage
         .from('foto')
         .getPublicUrl(fileName);
 
       const actualPhotoUrl = publicUrlData?.publicUrl || '';
 
-      const response = await insforge.functions.invoke('manage-business-cycle', {
+      const response = await supabase.functions.invoke('manage-business-cycle', {
         body: {
           action: 'clock_in',
           outletId: userRecord?.outlet_id,
@@ -126,9 +126,9 @@ export default function Shift() {
     if (!confirm("Are you sure you want to end your shift?")) return;
 
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData } = await supabase.auth.getUser();
       
-      const response = await insforge.functions.invoke('manage-business-cycle', {
+      const response = await supabase.functions.invoke('manage-business-cycle', {
         body: {
           action: 'clock_out',
           userId: userData.user?.id,

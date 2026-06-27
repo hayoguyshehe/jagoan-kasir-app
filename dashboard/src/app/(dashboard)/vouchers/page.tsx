@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { getContrastColor } from "@/lib/utils";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
@@ -43,7 +43,7 @@ export default function VouchersPage() {
   const fetchVouchers = async () => {
     if (!selectedOutletId) return;
     setLoading(true);
-    const { data, error } = await insforge
+    const { data, error } = await supabase
       .from("vouchers")
       .select("*")
       .eq("outlet_id", selectedOutletId)
@@ -80,12 +80,12 @@ export default function VouchersPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus voucher ini?")) return;
-    const { error } = await insforge.from("vouchers").delete().eq("id", id);
+    const { error } = await supabase.from("vouchers").delete().eq("id", id);
     if (!error) fetchVouchers();
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
-    const { error } = await insforge.from("vouchers").update({ is_active: !currentStatus }).eq("id", id);
+    const { error } = await supabase.from("vouchers").update({ is_active: !currentStatus }).eq("id", id);
     if (!error) fetchVouchers();
   };
 
@@ -108,7 +108,7 @@ export default function VouchersPage() {
     };
 
     if (editingId) {
-      const { error } = await insforge
+      const { error } = await supabase
         .from("vouchers")
         .update(payload)
         .eq("id", editingId);
@@ -117,7 +117,7 @@ export default function VouchersPage() {
         return;
       }
     } else {
-      const { error } = await insforge
+      const { error } = await supabase
         .from("vouchers")
         .insert(payload);
       if (error) {

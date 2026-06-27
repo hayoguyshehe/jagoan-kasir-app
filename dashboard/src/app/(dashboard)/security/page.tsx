@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ShieldAlert, MonitorSmartphone } from "lucide-react";
-import { insforge } from "@/lib/insforge";
+import { supabase } from "@/lib/supabase";
 import { useOutletContext } from "@/context/outlet-context";
 import { OutletSelector } from "@/components/layout/outlet-selector";
 import {
@@ -27,7 +27,7 @@ export default function SecurityPage() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    let query = insforge
+    let query = supabase
       .from("security_logs")
       .select("*, outlet:outlets(name), staff:users!security_logs_staff_id_fkey(name)")
       .order("created_at", { ascending: false })

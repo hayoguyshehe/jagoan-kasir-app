@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@insforge/sdk";
+import { createAdminClient } from "npm:@supabase/sdk";
 
 // Define the shape of our incoming request
 interface VoidRequest {
@@ -21,13 +21,13 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const insforge = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
 
     // Verify user token
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         status: 401, 
@@ -42,7 +42,7 @@ export default async function (req: Request) {
     }
 
     // Fetch transaction details
-    const { data: transaction, error: txnError } = await insforge
+    const { data: transaction, error: txnError } = await supabase
       .from('transactions')
       .select('*, transaction_items(*)')
       .eq('id', transactionId)
@@ -63,7 +63,7 @@ export default async function (req: Request) {
     // Since PIN is hashed, in a real app we'd verify the hash (e.g. bcrypt). 
     // Assuming simple string equality for this initial version, or an RPC function to verify.
     // Let's do a direct query. We need the user who owns the PIN.
-    const { data: pinUsers, error: pinError } = await insforge
+    const { data: pinUsers, error: pinError } = await supabase
       .from('users')
       .select('id, role, pin, outlet_id')
       .eq('pin', pin)
@@ -87,7 +87,7 @@ export default async function (req: Request) {
 
     // 1. Fetch current stocks of the products in the transaction
     const productIds = transaction.transaction_items.map((item: any) => item.product_id);
-    const { data: products, error: productsError } = await insforge
+    const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, stock')
       .in('id', productIds);
@@ -105,7 +105,7 @@ export default async function (req: Request) {
     }
 
     // 2. Reverse BOM
-    const { data: recipes, error: recipesError } = await insforge
+    const { data: recipes, error: recipesError } = await supabase
       .from('product_recipes')
       .select('product_id, material_id, quantity, serve_type')
       .in('product_id', productIds);
@@ -114,7 +114,7 @@ export default async function (req: Request) {
 
     if (recipes && recipes.length > 0) {
       const materialIds = [...new Set(recipes.map(r => r.material_id))];
-      const { data: materials, error: materialsError } = await insforge
+      const { data: materials, error: materialsError } = await supabase
         .from('products')
         .select('id, stock')
         .in('id', materialIds);
@@ -145,7 +145,7 @@ export default async function (req: Request) {
     // Execute updates individually to avoid NOT NULL constraint errors on partial upsert
     if (stockUpdates.length > 0) {
       for (const update of stockUpdates) {
-        const { error: updateError } = await insforge
+        const { error: updateError } = await supabase
           .from('products')
           .update({ stock: update.stock })
           .eq('id', update.id);
@@ -155,7 +155,7 @@ export default async function (req: Request) {
     }
 
     // Update transaction to VOIDED
-    const { data: updatedTxn, error: updateTxnError } = await insforge
+    const { data: updatedTxn, error: updateTxnError } = await supabase
       .from('transactions')
       .update({
         status: 'VOIDED',

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { db } from '../lib/db';
-import { insforge } from '../lib/insforge';
+import { supabase } from '../lib/supabase';
 
 export default function SyncManager() {
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function SyncManager() {
               cycleId: tx.cycleId
             };
 
-            const response = await insforge.functions.invoke('process-transaction', {
+            const response = await supabase.functions.invoke('process-transaction', {
               body: payload
             });
 

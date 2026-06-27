@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-    const insforge = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
     }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (id) {
-      const { data: existingTxn } = await insforge
+      const { data: existingTxn } = await supabase
         .from('transactions')
         .select('id')
         .eq('id', id)
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const productIds = items.map(i => i.productId);
-    const { data: products, error: productsError } = await insforge
+    const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, name, price, stock')
       .in('id', productIds);
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       stockUpdates.push({ id: product.id, stock: product.stock });
     }
 
-    const { data: recipes, error: recipesError } = await insforge
+    const { data: recipes, error: recipesError } = await supabase
       .from('product_recipes')
       .select('product_id, material_id, quantity, serve_type')
       .in('product_id', productIds);
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     if (recipes && recipes.length > 0) {
       const materialIds = [...new Set(recipes.map(r => r.material_id))];
-      const { data: materials, error: materialsError } = await insforge
+      const { data: materials, error: materialsError } = await supabase
         .from('products')
         .select('id, stock')
         .in('id', materialIds);
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     let appliedVoucherCode = voucherCode || null;
 
     if (voucherCode) {
-      const { data: voucher, error: voucherError } = await insforge
+      const { data: voucher, error: voucherError } = await supabase
         .from('vouchers')
         .select('*')
         .eq('code', voucherCode)
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
       transactionPayload.id = id;
     }
 
-    const { data: transaction, error: txnError } = await insforge
+    const { data: transaction, error: txnError } = await supabase
       .from('transactions')
       .insert(transactionPayload)
       .select()
@@ -195,14 +195,14 @@ export async function POST(req: NextRequest) {
       transaction_id: transaction.id
     }));
 
-    const { error: itemsError } = await insforge
+    const { error: itemsError } = await supabase
       .from('transaction_items')
       .insert(finalItems);
 
     if (itemsError) throw itemsError;
 
     const updatePromises = stockUpdates.map(update => 
-      insforge.from('products').update({ stock: update.stock }).eq('id', update.id)
+      supabase.from('products').update({ stock: update.stock }).eq('id', update.id)
     );
     const updateResults = await Promise.all(updatePromises);
     
