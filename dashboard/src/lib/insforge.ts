@@ -21,17 +21,36 @@ export const insforge = createClient(insforgeUrl, insforgeAnonKey, {
   global: { fetch: customFetch }
 });
 
-// Monkey-patch invoke to force Authorization header (since functionsUrl domain differs from baseUrl)
-const originalInvoke = insforge.functions.invoke.bind(insforge.functions);
+// Monkey-patch invoke to point to Next.js API routes since Supabase JS doesn't natively support functionsUrl redirect
 insforge.functions.invoke = async (functionName: string, options: any = {}) => {
-  if (!options.headers?.Authorization) {
-    const accessToken = (insforge.auth as any).tokenManager?.getAccessToken?.();
-    if (accessToken) {
-      options.headers = {
-        ...options.headers,
-        Authorization: `Bearer ${accessToken}`
-      };
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+
+  if (!headers.Authorization) {
+    // Supabase v2 JS auth session
+    const { data: { session } } = await insforge.auth.getSession();
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
     }
   }
-  return originalInvoke(functionName, options);
+
+  const response = await fetch(`${functionsUrl}/${functionName}`, {
+    method: 'POST',
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (e) {
+    data = await response.text();
+  }
+
+  if (!response.ok) {
+    return { data: null, error: data };
+  }
+  return { data, error: null };
 };
