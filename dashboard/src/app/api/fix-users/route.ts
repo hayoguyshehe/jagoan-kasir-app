@@ -10,14 +10,22 @@ export async function GET(req: Request) {
 
     const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
       let fetchUrl = url.toString();
-      const fetchOptions = options || {};
+      const fetchOptions: any = options || {};
       fetchOptions.headers = new Headers(fetchOptions.headers || {});
       
-      // If the URL is our external domain, rewrite to the direct VPS IP and force the Host header
-      // This bypasses Docker DNS resolution issues (ENOTFOUND) while still allowing Traefik to route properly
+      // If the URL is our external domain, rewrite to the direct VPS IP on HTTPS and force the Host header
       if (fetchUrl.includes("apitehmaestro.jagoankasir.store")) {
-        fetchUrl = fetchUrl.replace("https://apitehmaestro.jagoankasir.store", "http://103.63.25.248");
+        fetchUrl = fetchUrl.replace("https://apitehmaestro.jagoankasir.store", "https://103.63.25.248");
         (fetchOptions.headers as Headers).set("Host", "apitehmaestro.jagoankasir.store");
+        
+        try {
+          const { Agent } = require("undici");
+          fetchOptions.dispatcher = new Agent({
+            connect: { rejectUnauthorized: false }
+          });
+        } catch (e) {
+          console.error("Undici not found, skipping SSL bypass");
+        }
       }
       
       return fetch(fetchUrl, fetchOptions);
