@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     
     // If the URL is missing the port or is unreachable from inside Docker, use the direct IP fallback
     if (supabaseUrl === "https://apitehmaestro.jagoankasir.store") {
-      supabaseUrl = "http://103.63.25.248:8000";
+      supabaseUrl = "http://supabasekong-evbv7dpfdcuglrfem0rh5pnh.103.63.25.248.sslip.io";
     }
 
     if (!supabaseUrl || !supabaseServiceKey) {

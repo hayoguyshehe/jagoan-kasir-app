@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
 
     if (supabaseUrl === "https://apitehmaestro.jagoankasir.store") {
-      supabaseUrl = "http://103.63.25.248:8000";
+      supabaseUrl = "http://supabasekong-evbv7dpfdcuglrfem0rh5pnh.103.63.25.248.sslip.io";
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false, autoRefreshToken: false } });
