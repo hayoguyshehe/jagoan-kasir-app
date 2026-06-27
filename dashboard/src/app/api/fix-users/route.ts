@@ -5,9 +5,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+    let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
     
+    // If the URL is missing the port or is unreachable from inside Docker, use the direct IP fallback
+    if (supabaseUrl === "https://apitehmaestro.jagoankasir.store") {
+      supabaseUrl = "http://103.63.25.248:8000";
+    }
+
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ error: "Missing Supabase URL or Service Key" }, { status: 500 });
     }
