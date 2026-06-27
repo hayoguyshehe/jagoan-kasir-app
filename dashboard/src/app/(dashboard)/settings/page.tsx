@@ -129,11 +129,12 @@ export default function SettingsPage() {
               setIsDialogOpen(open);
               if (!open) resetForm();
             }}>
-              {/* @ts-ignore */}
-<DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Outlet
-                </Button>
+              <DialogTrigger 
+                render={
+                  <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }} />
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Outlet
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

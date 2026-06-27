@@ -129,11 +129,12 @@ export default function StockOpnamePage() {
         <>
           <div className="flex justify-end">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              {/* @ts-ignore */}
-              <DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
-                  <ListPlus className="mr-2 h-4 w-4" /> Stok Opname Baru
-                </Button>
+              <DialogTrigger 
+                render={
+                  <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }} />
+                }
+              >
+                <ListPlus className="mr-2 h-4 w-4" /> Stok Opname Baru
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

@@ -38,12 +38,9 @@ export function Topbar() {
   return (
     <header className="flex h-16 items-center gap-4 bg-transparent px-4 lg:px-8 mt-2">
       <Sheet>
-        {/* @ts-ignore */}
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="lg:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-          </Button>
+        <SheetTrigger render={<Button variant="outline" size="icon" className="lg:hidden" />}>
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle navigation menu</span>
         </SheetTrigger>
         <SheetContent side="left" className="p-0">
           <Sidebar />
@@ -51,16 +48,13 @@ export function Topbar() {
       </Sheet>
       <div className="flex w-full justify-end">
         <DropdownMenu>
-          {/* @ts-ignore */}
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <span className="sr-only">Toggle user menu</span>
-            </Button>
+          <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full hover:bg-accent hover:text-accent-foreground h-10 w-10 outline-none">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback>
+                <User className="h-4 w-4" />
+              </AvatarFallback>
+            </Avatar>
+            <span className="sr-only">Toggle user menu</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>

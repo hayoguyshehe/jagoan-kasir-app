@@ -175,11 +175,10 @@ export default function ProductsPage() {
         <>
           <div className="flex justify-end">
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-              {/* @ts-ignore */}
-              <DialogTrigger asChild>
-                <Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
-                  <Plus className="mr-2 h-4 w-4" /> Tambah Produk
-                </Button>
+              <DialogTrigger 
+                render={<Button style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }} />}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Tambah Produk
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
