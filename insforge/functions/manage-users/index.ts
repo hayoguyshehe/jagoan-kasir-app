@@ -13,13 +13,13 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const insforgeUrl = Deno.env.get("INSFORGE_URL") ?? "";
-    const insforgeServiceKey = Deno.env.get("INSFORGE_SERVICE_ROLE_KEY") ?? "";
+    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     // We use the service_role key to bypass RLS and be able to create auth users
     const insforge = createAdminClient({
-      baseUrl: insforgeUrl,
-      apiKey: insforgeServiceKey
+      baseUrl: supabaseUrl,
+      apiKey: supabaseServiceKey
     });
 
     // Verify caller is an Admin/Owner

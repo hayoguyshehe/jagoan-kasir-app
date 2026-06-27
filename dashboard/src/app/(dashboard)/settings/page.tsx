@@ -213,7 +213,7 @@ export default function SettingsPage() {
         <CardContent className="space-y-2 text-sm">
           <p><strong>Brand Name:</strong> {process.env.NEXT_PUBLIC_BRAND_NAME}</p>
           <p><strong>Primary Color:</strong> {process.env.NEXT_PUBLIC_PRIMARY_COLOR}</p>
-          <p><strong>InsForge URL:</strong> {process.env.NEXT_PUBLIC_INSFORGE_URL}</p>
+          <p><strong>InsForge URL:</strong> {process.env.NEXT_PUBLIC_SUPABASE_URL}</p>
         </CardContent>
       </Card>
     </div>

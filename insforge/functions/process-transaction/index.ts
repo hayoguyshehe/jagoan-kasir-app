@@ -31,13 +31,13 @@ export default async function (req: Request) {
 
   try {
     const authHeader = req.headers.get('Authorization')!;
-    const insforgeUrl = Deno.env.get("INSFORGE_URL") ?? "";
-    const insforgeServiceKey = Deno.env.get("INSFORGE_SERVICE_ROLE_KEY") ?? "";
+    const supabaseUrl = Deno.env.get("INSFORGE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     // We use the service role key to perform DB updates bypass RLS, 
     // but we can also use the auth header to verify the user.
     // In this edge function, we will bypass RLS since it's a complex transaction that updates multiple tables.
-    const insforge = createAdminClient({ baseUrl: insforgeUrl, apiKey: insforgeServiceKey });
+    const insforge = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
 
     // Verify user token just to be secure
     const { data: { user }, error: authError } = await insforge.auth.getUser(authHeader.replace('Bearer ', ''));

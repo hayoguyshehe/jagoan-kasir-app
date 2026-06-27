@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const insforgeUrl = process.env.NEXT_PUBLIC_INSFORGE_URL;
-const insforgeAnonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!insforgeUrl || !insforgeAnonKey) {
-  throw new Error("Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY in environment variables");
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in environment variables");
 }
 
 // Use local Next.js API routes for edge functions
@@ -16,7 +16,7 @@ const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   return fetch(url, newOptions as any);
 };
 
-export const insforge = createClient(insforgeUrl, insforgeAnonKey, { 
+export const insforge = createClient(supabaseUrl, supabaseAnonKey, { 
   global: { fetch: customFetch }
 });
 

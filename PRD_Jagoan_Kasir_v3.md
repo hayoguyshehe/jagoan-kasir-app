@@ -30,13 +30,13 @@ Jagoan Kasir adalah aplikasi Point of Sale (POS) berarsitektur **White-Label Saa
 ### Konfigurasi `.env` per Brand
 
 **Kasir App** (`kasir-app/.env.local`):
-- `VITE_INSFORGE_URL`, `VITE_INSFORGE_ANON_KEY`
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - `VITE_BRAND_SLUG`, `VITE_BRAND_NAME`, `VITE_PRIMARY_COLOR`
 - `VITE_LOGO_URL`, `VITE_LOGIN_BG_IMAGE`
 - `VITE_OUTLET_QRIS_IMAGE` *(baru — gambar QR Code QRIS statis)*
 
 **Dashboard** (`dashboard/.env.local`):
-- `NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_BRAND_SLUG`, `NEXT_PUBLIC_BRAND_NAME`, `NEXT_PUBLIC_PRIMARY_COLOR`
 - `NEXT_PUBLIC_LOGO_URL`, `NEXT_PUBLIC_LOGIN_BG_IMAGE`
 

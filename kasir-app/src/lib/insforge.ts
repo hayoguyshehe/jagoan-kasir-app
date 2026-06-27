@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const insforgeUrl = import.meta.env.VITE_INSFORGE_URL;
-const insforgeAnonKey = import.meta.env.VITE_INSFORGE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!insforgeUrl || !insforgeAnonKey) {
-  throw new Error("Missing VITE_INSFORGE_URL or VITE_INSFORGE_ANON_KEY in environment variables");
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in environment variables");
 }
 
 // Use Dasbor Next.js API routes for edge functions
@@ -17,7 +17,7 @@ const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   return fetch(url, newOptions as any);
 };
 
-export const insforge = createClient(insforgeUrl, insforgeAnonKey, { 
+export const insforge = createClient(supabaseUrl, supabaseAnonKey, { 
   global: { fetch: customFetch }
 });
 

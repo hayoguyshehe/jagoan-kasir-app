@@ -32,8 +32,8 @@ export interface BrandConfig {
   primaryColor: string;
   secondaryColor: string;
   logoUrl: string;
-  insforgeUrl: string;
-  insforgeAnonKey: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
 }
 
 export const BRANDS: Record<string, BrandConfig> = {
@@ -43,8 +43,8 @@ export const BRANDS: Record<string, BrandConfig> = {
     primaryColor: '#D4A574',
     secondaryColor: '#8B6914',
     logoUrl: '/brands/tehmaestro/logo.svg',
-    insforgeUrl: '', // Set via .env
-    insforgeAnonKey: '', // Set via .env
+    supabaseUrl: '', // Set via .env
+    supabaseAnonKey: '', // Set via .env
   },
   '2trees': {
     name: '2 Trees Coffee',
@@ -52,8 +52,8 @@ export const BRANDS: Record<string, BrandConfig> = {
     primaryColor: '#2D5016',
     secondaryColor: '#4A7C23',
     logoUrl: '/brands/2trees/logo.svg',
-    insforgeUrl: '', // Set via .env
-    insforgeAnonKey: '', // Set via .env
+    supabaseUrl: '', // Set via .env
+    supabaseAnonKey: '', // Set via .env
   },
 };
 
