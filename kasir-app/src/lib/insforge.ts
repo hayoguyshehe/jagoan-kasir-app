@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_INSFORGE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_INSFORGE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+const supabaseUrl = import.meta.env.VITE_INSFORGE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_INSFORGE_ANON_KEY || 'placeholder';
 
 if (!import.meta.env.VITE_INSFORGE_URL && typeof window !== 'undefined') {
   console.error("Missing VITE_INSFORGE_URL in environment variables");
