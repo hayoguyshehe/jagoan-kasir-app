@@ -9,7 +9,6 @@ if (!insforgeUrl || !insforgeAnonKey) {
 
 // Use local Next.js API routes for edge functions
 const dashboardUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_DASHBOARD_URL || 'http://localhost:3000');
-const functionsUrl = `${dashboardUrl}/api/functions`;
 
 const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   const newOptions = { ...options };
@@ -36,7 +35,7 @@ insforge.functions.invoke = async (functionName: string, options: any = {}) => {
     }
   }
 
-  const response = await fetch(`${functionsUrl}/${functionName}`, {
+  const response = await fetch(`${dashboardUrl}/api/functions/${functionName}`, {
     method: 'POST',
     headers,
     body: options.body ? JSON.stringify(options.body) : undefined

@@ -10,7 +10,6 @@ if (!insforgeUrl || !insforgeAnonKey) {
 // Use Dasbor Next.js API routes for edge functions
 const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL;
 if (!dashboardUrl) throw new Error("Missing VITE_DASHBOARD_URL environment variable (must point to Dasbor URL)");
-const functionsUrl = `${dashboardUrl}/api/functions`;
 
 const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   const newOptions = { ...options };
@@ -37,7 +36,7 @@ insforge.functions.invoke = async (functionName: string, options: any = {}) => {
     }
   }
 
-  const response = await fetch(`${functionsUrl}/${functionName}`, {
+  const response = await fetch(`${dashboardUrl}/api/functions/${functionName}`, {
     method: 'POST',
     headers,
     body: options.body ? JSON.stringify(options.body) : undefined
