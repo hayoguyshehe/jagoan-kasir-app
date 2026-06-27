@@ -31,6 +31,8 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_BRAND_NAME
 ENV NEXT_PUBLIC_BRAND_NAME=$NEXT_PUBLIC_BRAND_NAME
 
+ENV NODE_OPTIONS="--max_old_space_size=1024"
+
 RUN npm run build -w dashboard
 
 # Production image, copy all the files and run next
