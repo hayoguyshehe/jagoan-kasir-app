@@ -31,7 +31,7 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_BRAND_NAME
 ENV NEXT_PUBLIC_BRAND_NAME=$NEXT_PUBLIC_BRAND_NAME
 
-ENV NODE_OPTIONS="--max_old_space_size=1024"
+ENV NODE_OPTIONS="--max_old_space_size=1024 --dns-result-order=ipv4first"
 
 RUN npm run build -w dashboard
 
@@ -41,6 +41,7 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

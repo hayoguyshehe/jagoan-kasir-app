@@ -16,34 +16,11 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error("Missing Authorization header");
 
-    let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
 
-    const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
-      let fetchUrl = url.toString();
-      const fetchOptions: any = options || {};
-      fetchOptions.headers = new Headers(fetchOptions.headers || {});
-      
-      if (fetchUrl.includes("apitehmaestro.jagoankasir.store")) {
-        fetchUrl = fetchUrl.replace("https://apitehmaestro.jagoankasir.store", "https://103.63.25.248");
-        (fetchOptions.headers as Headers).set("Host", "apitehmaestro.jagoankasir.store");
-        
-        try {
-          const { Agent } = require("undici");
-          fetchOptions.dispatcher = new Agent({
-            connect: { rejectUnauthorized: false }
-          });
-        } catch (e) {
-          console.error("Undici not found, skipping SSL bypass");
-        }
-      }
-      
-      return fetch(fetchUrl, fetchOptions);
-    };
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey, { 
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: { fetch: customFetch }
+      auth: { persistSession: false, autoRefreshToken: false }
     });
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
