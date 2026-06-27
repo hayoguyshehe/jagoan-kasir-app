@@ -19,8 +19,22 @@ export async function POST(req: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VPS_SUPABASE_SERVICE_KEY || "";
 
+    const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
+      let fetchUrl = url.toString();
+      const fetchOptions: any = options || {};
+      fetchOptions.headers = new Headers(fetchOptions.headers || {});
+      
+      // Bypass Hairpin NAT and Traefik by hitting the Kong container directly
+      if (fetchUrl.includes("apitehmaestro.jagoankasir.store")) {
+        fetchUrl = fetchUrl.replace("https://apitehmaestro.jagoankasir.store", "http://supabasekong-evbv7dpfdcuglrfem0rh5pnh:8000");
+      }
+      
+      return fetch(fetchUrl, fetchOptions);
+    };
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey, { 
-      auth: { persistSession: false, autoRefreshToken: false }
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: customFetch }
     });
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
