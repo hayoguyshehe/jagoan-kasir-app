@@ -39,9 +39,14 @@ export default function LoginPage() {
         .from("users")
         .select("role")
         .eq("id", data.user.id)
-        .single();
+        .maybeSingle();
 
       if (userError) throw userError;
+      
+      if (!userData) {
+        await supabase.auth.signOut();
+        throw new Error("Akun Anda berhasil terdaftar di sistem keamanan, tetapi profil Anda gagal tersimpan di database. Kemungkinan karena Edge Functions belum di-deploy. Silakan hapus akun ini dan coba lagi setelah deploy.");
+      }
 
       if (userData.role !== "ADMIN" && userData.role !== "OWNER") {
         await supabase.auth.signOut();
