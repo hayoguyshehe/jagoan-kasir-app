@@ -148,11 +148,11 @@ export default function VouchersPage() {
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger 
                 render={
-                  <Button onClick={() => setIsDialogOpen(true)} style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }} />
+                  <Button onClick={() => setIsDialogOpen(true)} style={{ backgroundColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR, color: getContrastColor(process.env.NEXT_PUBLIC_PRIMARY_COLOR) }}>
+                    <Plus className="mr-2 h-4 w-4" /> Tambah Voucher
+                  </Button>
                 }
-              >
-                <Plus className="mr-2 h-4 w-4" /> Tambah Voucher
-              </DialogTrigger>
+              />
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{editingId ? "Edit Voucher" : "Tambah Voucher Baru"}</DialogTitle>
