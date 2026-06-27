@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@supabase/sdk";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Define the shape of our incoming request
 interface VoidRequest {
@@ -24,7 +24,7 @@ export default async function (req: Request) {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createClient(supabaseUrl, );
 
     // Verify user token
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@supabase/sdk";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,10 +17,7 @@ export default async function (req: Request) {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
     // We use the service_role key to bypass RLS and be able to create auth users
-    const supabase = createAdminClient({
-      baseUrl: supabaseUrl,
-      apiKey: supabaseServiceKey
-    });
+    const supabase = createClient(supabaseUrl, );
 
     // Verify caller is an Admin/Owner
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));

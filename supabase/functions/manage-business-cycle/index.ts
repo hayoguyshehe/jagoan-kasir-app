@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@supabase/sdk";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 interface CycleRequest {
   action: 'clock_in' | 'clock_out' | 'close_store';
@@ -26,7 +26,7 @@ export default async function (req: Request) {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createClient(supabaseUrl, );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (authError || !user) {

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createAdminClient } from "npm:@supabase/sdk";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Define the shape of our incoming request
 interface TransactionRequest {
@@ -37,7 +37,7 @@ export default async function (req: Request) {
     // We use the service role key to perform DB updates bypass RLS, 
     // but we can also use the auth header to verify the user.
     // In this edge function, we will bypass RLS since it's a complex transaction that updates multiple tables.
-    const supabase = createAdminClient({ baseUrl: supabaseUrl, apiKey: supabaseServiceKey });
+    const supabase = createClient(supabaseUrl, );
 
     // Verify user token just to be secure
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
