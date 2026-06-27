@@ -47,7 +47,7 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
       if (!userData?.user) throw new Error("Not logged in");
 
       // Verify PIN against the currently logged in user
-      const { data: userRow, error: dbError } = await insforge.database
+      const { data: userRow, error: dbError } = await insforge
         .from('users')
         .select('pin')
         .eq('id', userData.user.id)

@@ -48,14 +48,14 @@ export default function RecipesPage() {
     if (!selectedOutletId) return;
     setLoading(true);
 
-    const { data: menuData } = await insforge.database
+    const { data: menuData } = await insforge
       .from("products")
       .select("*")
       .eq("outlet_id", selectedOutletId)
       .eq("product_type", "MENU")
       .order("name");
 
-    const { data: materialData } = await insforge.database
+    const { data: materialData } = await insforge
       .from("products")
       .select("*")
       .eq("outlet_id", selectedOutletId)
@@ -69,7 +69,7 @@ export default function RecipesPage() {
 
   const handleManageRecipe = async (menu: Product) => {
     setSelectedMenu(menu);
-    const { data } = await insforge.database
+    const { data } = await insforge
       .from("product_recipes")
       .select(`
         id, product_id, material_id, quantity, serve_type,
@@ -92,7 +92,7 @@ export default function RecipesPage() {
       serve_type: serveType === "ALL" ? null : serveType,
     };
 
-    const { data, error } = await insforge.database
+    const { data, error } = await insforge
       .from("product_recipes")
       .insert(payload)
       .select(`
@@ -113,7 +113,7 @@ export default function RecipesPage() {
   };
 
   const handleDeleteRecipe = async (id: string) => {
-    const { error } = await insforge.database.from("product_recipes").delete().eq("id", id);
+    const { error } = await insforge.from("product_recipes").delete().eq("id", id);
     if (!error) {
       setRecipes(recipes.filter((r) => r.id !== id));
     }

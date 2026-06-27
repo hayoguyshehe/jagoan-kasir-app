@@ -48,7 +48,7 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     if (!selectedOutletId) return;
     setLoading(true);
-    const { data, error } = await insforge.database
+    const { data, error } = await insforge
       .from("products")
       .select("*")
       .eq("outlet_id", selectedOutletId)
@@ -89,7 +89,7 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus produk ini?")) return;
-    const { error } = await insforge.database.from("products").delete().eq("id", id);
+    const { error } = await insforge.from("products").delete().eq("id", id);
     if (!error) fetchProducts();
   };
 
@@ -134,7 +134,7 @@ export default function ProductsPage() {
     };
 
     if (editingId) {
-      const { error } = await insforge.database
+      const { error } = await insforge
         .from("products")
         .update(payload)
         .eq("id", editingId);
@@ -144,7 +144,7 @@ export default function ProductsPage() {
         return;
       }
     } else {
-      const { error } = await insforge.database
+      const { error } = await insforge
         .from("products")
         .insert(payload);
       if (error) {

@@ -35,7 +35,7 @@ export default function LoginPage() {
       if (!data || !data.user) throw new Error("User not found");
 
       // Ensure the user has the correct role (Admin or Owner)
-      const { data: userData, error: userError } = await insforge.database
+      const { data: userData, error: userError } = await insforge
         .from("users")
         .select("role")
         .eq("id", data.user.id)

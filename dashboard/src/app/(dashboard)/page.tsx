@@ -21,10 +21,10 @@ export default function DashboardHome() {
     async function fetchStats() {
       try {
         const [txnRes, revRes, prodRes, staffRes] = await Promise.all([
-          insforge.database.from("transactions").select("id", { count: "exact" }),
-          insforge.database.from("transactions").select("total_amount, created_at").eq("status", "COMPLETED"),
-          insforge.database.from("products").select("*"),
-          insforge.database.from("users").select("id", { count: "exact" }).eq("role", "STAFF").eq("is_active", true)
+          insforge.from("transactions").select("id", { count: "exact" }),
+          insforge.from("transactions").select("total_amount, created_at").eq("status", "COMPLETED"),
+          insforge.from("products").select("*"),
+          insforge.from("users").select("id", { count: "exact" }).eq("role", "STAFF").eq("is_active", true)
         ]);
 
         const totalRevenue = revRes.data?.reduce((acc, curr) => acc + (curr.total_amount || 0), 0) || 0;

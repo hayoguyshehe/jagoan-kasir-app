@@ -25,7 +25,7 @@ export default function Shift() {
     
     if (userData.user) {
       // Find active attendance log for this user
-      const { data } = await insforge.database
+      const { data } = await insforge
         .from('attendance_logs')
         .select('*')
         .eq('user_id', userData.user.id)
@@ -78,7 +78,7 @@ export default function Shift() {
 
     try {
       const { data: userData } = await insforge.auth.getCurrentUser();
-      const { data: userRecord } = await insforge.database.from("users").select("outlet_id").eq("id", userData.user?.id).single();
+      const { data: userRecord } = await insforge.from("users").select("outlet_id").eq("id", userData.user?.id).single();
 
       // Convert Base64 to Blob
       const fetchResponse = await fetch(photoUrl);

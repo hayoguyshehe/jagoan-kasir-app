@@ -54,11 +54,11 @@ export default function SettingsPage() {
     // Check if user is OWNER
     const { data: userData } = await insforge.auth.getCurrentUser();
     if (userData.user) {
-      const { data: userRecord } = await insforge.database.from("users").select("role").eq("id", userData.user.id).single();
+      const { data: userRecord } = await insforge.from("users").select("role").eq("id", userData.user.id).single();
       if (userRecord) setUserRole(userRecord.role);
     }
     
-    const { data, error } = await insforge.database
+    const { data, error } = await insforge
         .from("outlets")
       .select("*")
       .order("name");
@@ -86,7 +86,7 @@ export default function SettingsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this outlet? This might break transactions tied to it.")) return;
-    const { error } = await insforge.database.from("outlets").delete().eq("id", id);
+    const { error } = await insforge.from("outlets").delete().eq("id", id);
     if (!error) {
       fetchData();
     }
@@ -102,9 +102,9 @@ export default function SettingsPage() {
     };
 
     if (editingId) {
-      await insforge.database.from("outlets").update(payload).eq("id", editingId);
+      await insforge.from("outlets").update(payload).eq("id", editingId);
     } else {
-      await insforge.database.from("outlets").insert(payload);
+      await insforge.from("outlets").insert(payload);
     }
 
     setIsDialogOpen(false);

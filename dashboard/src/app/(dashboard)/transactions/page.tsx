@@ -40,7 +40,7 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async () => {
     setLoading(true);
-    const { data, error } = await insforge.database
+    const { data, error } = await insforge
       .from("transactions")
       .select("*, staff:users!transactions_staff_id_fkey(email), cycle:business_cycles(status), transaction_items(*)")
       .order("created_at", { ascending: false })

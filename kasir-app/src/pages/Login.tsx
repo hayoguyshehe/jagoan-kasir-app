@@ -33,7 +33,7 @@ export default function Login() {
       if (!data || !data.user) throw new Error('User not found');
 
       // Verify user is active staff
-      const { data: userData, error: userError } = await insforge.database
+      const { data: userData, error: userError } = await insforge
         .from('users')
         .select('role, is_active, outlet_id')
         .eq('id', data.user?.id)
@@ -54,7 +54,7 @@ export default function Login() {
         localStorage.setItem('outlet_device_id', deviceId);
         
         // Log to security_logs (unrecognized device)
-        await insforge.database.from('security_logs').insert({
+        await insforge.from('security_logs').insert({
           outlet_id: userData.outlet_id || null,
           staff_id: data.user.id,
           attempted_name: name,

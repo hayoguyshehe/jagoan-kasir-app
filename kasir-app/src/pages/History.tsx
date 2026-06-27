@@ -17,7 +17,7 @@ export default function History() {
     const { data: userData } = await insforge.auth.getCurrentUser();
     
     if (userData.user) {
-      const { data } = await insforge.database
+      const { data } = await insforge
         .from('transactions')
         .select('*, transaction_items(*)')
         .eq('staff_id', userData.user.id)

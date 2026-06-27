@@ -27,7 +27,7 @@ export default function SecurityPage() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    let query = insforge.database
+    let query = insforge
       .from("security_logs")
       .select("*, outlet:outlets(name), staff:users!security_logs_staff_id_fkey(name)")
       .order("created_at", { ascending: false })

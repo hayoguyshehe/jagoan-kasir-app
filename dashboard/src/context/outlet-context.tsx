@@ -44,7 +44,7 @@ export function OutletProvider({ children }: { children: ReactNode }) {
         setUserId(authData.user.id);
 
         // Fetch user's role and outlet
-        const { data: userRecord } = await insforge.database
+        const { data: userRecord } = await insforge
           .from("users")
           .select("role, outlet_id")
           .eq("id", authData.user.id)
@@ -55,7 +55,7 @@ export function OutletProvider({ children }: { children: ReactNode }) {
         setUserRole(userRecord.role);
 
         // Fetch outlets
-        const { data: outletData } = await insforge.database
+        const { data: outletData } = await insforge
           .from("outlets")
           .select("id, name, address, phone")
           .order("name");

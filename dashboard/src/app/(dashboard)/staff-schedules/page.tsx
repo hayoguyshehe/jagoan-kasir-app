@@ -64,7 +64,7 @@ export default function StaffSchedulesPage() {
     setLoading(true);
 
     // Fetch all staff users (role = STAFF)
-    const { data: staffData } = await insforge.database
+    const { data: staffData } = await insforge
       .from("users")
       .select("id, email")
       .eq("role", "STAFF");
@@ -75,7 +75,7 @@ export default function StaffSchedulesPage() {
     const startDate = new Date(selectedYear, selectedMonth, 1).toISOString().split("T")[0];
     const endDate = new Date(selectedYear, selectedMonth + 1, 0).toISOString().split("T")[0];
 
-    const { data: schedData } = await insforge.database
+    const { data: schedData } = await insforge
       .from("staff_schedules")
       .select("*, user:users(email)")
       .eq("outlet_id", selectedOutletId)
@@ -110,7 +110,7 @@ export default function StaffSchedulesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Hapus jadwal ini?")) return;
-    const { error } = await insforge.database.from("staff_schedules").delete().eq("id", id);
+    const { error } = await insforge.from("staff_schedules").delete().eq("id", id);
     if (!error) fetchData();
   };
 
@@ -130,7 +130,7 @@ export default function StaffSchedulesPage() {
     };
 
     if (editingScheduleId) {
-      const { error } = await insforge.database
+      const { error } = await insforge
         .from("staff_schedules")
         .update(payload)
         .eq("id", editingScheduleId);
@@ -140,7 +140,7 @@ export default function StaffSchedulesPage() {
         return;
       }
     } else {
-      const { error } = await insforge.database
+      const { error } = await insforge
         .from("staff_schedules")
         .insert(payload);
 

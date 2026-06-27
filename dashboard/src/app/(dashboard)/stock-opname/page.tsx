@@ -46,13 +46,13 @@ export default function StockOpnamePage() {
     if (!selectedOutletId) return;
     setLoading(true);
     
-    const { data: logsData } = await insforge.database
+    const { data: logsData } = await insforge
       .from("stock_adjustment_logs")
       .select("*, product:products(name), user:users(email)")
       .eq("outlet_id", selectedOutletId)
       .order("created_at", { ascending: false });
       
-    const { data: productsData } = await insforge.database
+    const { data: productsData } = await insforge
       .from("products")
       .select("*")
       .eq("outlet_id", selectedOutletId)
@@ -80,7 +80,7 @@ export default function StockOpnamePage() {
       const parsedNewStock = parseInt(newStock);
 
       // 1. Insert to stock_adjustment_logs
-      const { error: logError } = await insforge.database
+      const { error: logError } = await insforge
         .from("stock_adjustment_logs")
         .insert({
           product_id: selectedProductId,
@@ -95,7 +95,7 @@ export default function StockOpnamePage() {
       if (logError) throw logError;
 
       // 2. Update stock in products table
-      const { error: updateError } = await insforge.database
+      const { error: updateError } = await insforge
         .from("products")
         .update({ stock: parsedNewStock })
         .eq("id", selectedProductId);

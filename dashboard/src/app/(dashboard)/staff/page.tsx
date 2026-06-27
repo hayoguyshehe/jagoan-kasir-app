@@ -43,7 +43,7 @@ export default function StaffPage() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    let query = insforge.database
+    let query = insforge
       .from("users")
       .select("*, outlet:outlets(name)")
       .order("created_at", { ascending: false });
@@ -63,7 +63,7 @@ export default function StaffPage() {
   const toggleActiveStatus = async (id: string, currentStatus: boolean) => {
     if (!confirm(`Are you sure you want to ${currentStatus ? "deactivate" : "activate"} this user?`)) return;
     
-    const { error } = await insforge.database
+    const { error } = await insforge
         .from("users")
       .update({ is_active: !currentStatus })
       .eq("id", id);

@@ -282,7 +282,7 @@ function CheckoutModal({ cartItems, cartTotal, primaryColor, onClose, onConfirm,
                   setVoucherError('');
                   setIsCheckingVoucher(true);
                   try {
-                    const { data: voucher, error } = await insforge.database
+                    const { data: voucher, error } = await insforge
                       .from('vouchers')
                       .select('*')
                       .eq('code', voucherInput.trim().toUpperCase())
@@ -515,7 +515,7 @@ export default function POS() {
       
       setStaffEmail(userData.user.email || '');
 
-      const { data: userRecord } = await insforge.database
+      const { data: userRecord } = await insforge
         .from("users")
         .select("outlet_id")
         .eq("id", userData.user.id)
@@ -525,7 +525,7 @@ export default function POS() {
         setOutletId(userRecord.outlet_id);
         
         // Fetch outlet info for receipt
-        const { data: outlet } = await insforge.database
+        const { data: outlet } = await insforge
           .from('outlets')
           .select('name, address, phone')
           .eq('id', userRecord.outlet_id)
@@ -535,7 +535,7 @@ export default function POS() {
 
       // Fetch MENUs and ADDONs from server if online
       if (navigator.onLine) {
-        const { data } = await insforge.database
+        const { data } = await insforge
           .from('products')
           .select('*')
           .in('type', ['MENU', 'ADDON'])
